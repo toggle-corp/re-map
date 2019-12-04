@@ -5,7 +5,7 @@ import { Source, Layer } from './type';
 
 interface MapChildState {
     map?: mapboxgl.Map;
-    mapStyle?: string;
+    mapStyle?: mapboxgl.MapboxOptions['style'];
     mapContainerRef?: React.RefObject<HTMLDivElement>;
     setSource: (source: Source) => void;
     getSource: (sourceKey: string) => Source | undefined;

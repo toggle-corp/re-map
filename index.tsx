@@ -14,8 +14,8 @@ if (TOKEN) {
 interface Props {
     children?: React.ReactNode | null; // FIXME typings
 
-    mapStyle: string;
-    mapOptions: mapboxgl.MapboxOptions;
+    mapStyle: mapboxgl.MapboxOptions['style'];
+    mapOptions: Omit<mapboxgl.MapboxOptions, 'style' | 'container'>;
 
     scaleControlShown: boolean;
     scaleControlPosition: Position;
@@ -127,7 +127,7 @@ const Map = (props: Props) => {
                 console.info(`Skipping map style set: ${mapStyleFromProps}`);
                 return;
             }
-            if (mapRef.current) {
+            if (mapRef.current && mapStyleFromProps) {
                 console.warn(`Setting map style ${mapStyleFromProps}`);
                 mapRef.current.setStyle(mapStyleFromProps);
             }

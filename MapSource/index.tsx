@@ -5,7 +5,10 @@ import produce from 'immer';
 import { MapChildContext, SourceChildContext } from '../context';
 import { Layer } from '../type';
 
-function useCounter(initialValue: number = 0): [() => void, number] {
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = () => {};
+
+function useCounter(initialValue = 0): [() => void, number] {
     const [value, updateValue] = useState(initialValue);
     const increaseValue = () => {
         updateValue(value + 1);
@@ -45,7 +48,7 @@ const MapSource = (props: Props) => {
     useEffect(
         () => {
             if (!map || !sourceKey) {
-                return () => {};
+                return noop;
             }
             const options = sourceOptions.type === 'geojson'
                 ? { ...sourceOptions, data: geoJSON }

@@ -11,29 +11,29 @@ if (TOKEN) {
     mapboxgl.accessToken = TOKEN;
 }
 
-interface Props {
-    children?: React.ReactNode | null; // FIXME typings
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = () => {};
 
+interface Props {
     mapStyle: mapboxgl.MapboxOptions['style'];
     mapOptions: Omit<mapboxgl.MapboxOptions, 'style' | 'container'>;
 
     scaleControlShown: boolean;
-    scaleControlPosition: Position;
+    scaleControlPosition?: Position;
     scaleControlOptions?: ConstructorParameters<typeof mapboxgl.ScaleControl>[0];
 
     navControlShown: boolean;
-    navControlPosition: Position;
+    navControlPosition?: Position;
     navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
 }
 
 type Position = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
 
-const Map = (props: Props) => {
+const Map: React.FC<Props> = (props) => {
     const {
         mapStyle: mapStyleFromProps,
         mapOptions,
-        children,
 
         scaleControlPosition,
         scaleControlShown,
@@ -43,7 +43,7 @@ const Map = (props: Props) => {
         navControlOptions,
         navControlPosition,
     } = props;
-    const [mapStyle, setMapStyle] = useState(mapStyleFromProps);
+    const [mapStyle, setMapStyle] = useState<mapboxgl.MapboxOptions['style']>(undefined);
 
     const sourcesRef = useRef<Sources>({});
 
@@ -54,12 +54,12 @@ const Map = (props: Props) => {
         () => {
             if (UNSUPPORTED_BROWSER) {
                 console.error('No Mapboxgl support.');
-                return () => {};
+                return noop;
             }
             const { current: mapContainer } = mapContainerRef;
             if (!mapContainer) {
                 console.error('No container found.');
-                return () => {};
+                return noop;
             }
 
             const mapboxglMap = new mapboxgl.Map({
@@ -86,16 +86,7 @@ const Map = (props: Props) => {
                 );
             }
 
-            const onStyleData = (event: mapboxgl.MapEventType['styledata'] & mapboxgl.EventData) => {
-                // FIXME: style.load will be deprecated
-                const style = event.style.stylesheet.sprite;
-                console.info(`Passing mapStyle: ${style}`);
-                setMapStyle(style);
-            };
-
-            mapboxglMap.on('style.load', onStyleData);
-
-            // NOTE: need to resize map in some cases
+            // TODO: need to resize map in some cases
             const timer = setTimeout(() => {
                 mapboxglMap.resize();
             }, 200);
@@ -106,8 +97,6 @@ const Map = (props: Props) => {
                 Object.entries(sourcesRef.current).forEach(([_, source]) => {
                     source.destroy();
                 });
-
-                mapboxglMap.off('style.load', onStyleData);
 
                 console.warn('Removing map');
                 mapboxglMap.remove();
@@ -121,20 +110,35 @@ const Map = (props: Props) => {
     useEffect(
         () => {
             if (UNSUPPORTED_BROWSER) {
-                return;
-            }
-            if (mapStyle === mapStyleFromProps) {
-                console.info(`Skipping map style set: ${mapStyleFromProps}`);
-                return;
+                return noop;
             }
             if (mapRef.current && mapStyleFromProps) {
+                // NOTE: destroying every source and layer before switching map
+                Object.entries(sourcesRef.current).forEach(([_, source]) => {
+                    source.destroy();
+                });
+
                 console.warn(`Setting map style ${mapStyleFromProps}`);
                 mapRef.current.setStyle(mapStyleFromProps);
+
+                const onStyleData = (event: mapboxgl.MapEventType['styledata'] & mapboxgl.EventData) => {
+                    console.info('Passing mapStyle:', mapStyleFromProps);
+                    setMapStyle(mapStyleFromProps);
+                };
+                mapRef.current.once('styledata', onStyleData);
+
+                return () => {
+                    if (mapRef.current) {
+                        mapRef.current.off('styledata', onStyleData);
+                    }
+                };
             }
+            return noop;
         },
         [mapStyleFromProps],
     );
 
+    const children = props.children as React.ReactElement<any>;
     if (UNSUPPORTED_BROWSER) {
         return children;
     }
@@ -178,8 +182,6 @@ const Map = (props: Props) => {
 };
 
 Map.defaultProps = {
-    mapOptions: {},
-
     scaleControlShown: false,
     scaleControlPosition: 'bottom-right',
 

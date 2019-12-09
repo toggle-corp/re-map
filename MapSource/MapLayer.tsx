@@ -4,6 +4,9 @@ import mapboxgl from 'mapbox-gl';
 import { SourceChildContext } from '../context';
 // import { Layer } from '../type';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = () => {};
+
 interface Props {
     layerKey: string;
     layerOptions: mapboxgl.Layer;
@@ -29,7 +32,7 @@ const MapLayer = (props: Props) => {
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey) {
-                return () => {};
+                return noop;
             }
             const id = `${sourceKey}›${layerKey}`;
             console.warn(`Creating new layer: ${id}`);

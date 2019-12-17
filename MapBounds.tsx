@@ -8,7 +8,7 @@ interface Props {
     duration: number;
 }
 
-const MapContainer = (props: Props) => {
+const MapBounds = (props: Props) => {
     const { map } = useContext(MapChildContext);
     const {
         padding,
@@ -38,9 +38,9 @@ const MapContainer = (props: Props) => {
 };
 
 
-MapContainer.defaultProps = {
+MapBounds.defaultProps = {
     padding: 0,
     duration: 200, // ms
 };
 
-export default MapContainer;
+export default MapBounds;

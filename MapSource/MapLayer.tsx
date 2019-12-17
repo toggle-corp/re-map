@@ -1,6 +1,7 @@
 import { useContext, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 
+import { getLayerName } from '../utils';
 import { SourceChildContext } from '../context';
 // import { Layer } from '../type';
 
@@ -10,12 +11,33 @@ const noop = () => {};
 interface Props {
     layerKey: string;
     layerOptions: mapboxgl.Layer;
+    onClick?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+    ) => boolean | undefined;
+    onDoubleClick?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+    ) => boolean | undefined;
+    // Only called for topmost layer
+    onMouseEnter?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+    ) => void;
+    onMouseLeave?: () => void;
 }
 
 const MapLayer = (props: Props) => {
     const {
         layerKey,
         layerOptions,
+        onClick,
+        onDoubleClick,
+        onMouseEnter,
+        onMouseLeave,
     } = props;
 
     const {
@@ -29,12 +51,14 @@ const MapLayer = (props: Props) => {
         getLayer,
     } = useContext(SourceChildContext);
 
+    // TODO: update onClick, disabled on change
+
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey) {
                 return noop;
             }
-            const id = `${sourceKey}›${layerKey}`;
+            const id = getLayerName(sourceKey, layerKey);
             console.warn(`Creating new layer: ${id}`);
             map.addLayer({
                 ...layerOptions,
@@ -51,7 +75,14 @@ const MapLayer = (props: Props) => {
                 removeLayer(id);
             };
 
-            setLayer({ name: layerKey, destroy });
+            setLayer({
+                name: layerKey,
+                destroy,
+                onClick,
+                onDoubleClick,
+                onMouseEnter,
+                onMouseLeave,
+            });
 
             return destroy;
         },

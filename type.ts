@@ -4,8 +4,25 @@ interface Obj<T> {
 
 export interface Layer {
     name: string;
-    // sourceName: string;
     destroy: () => void;
+    onClick?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+    ) => boolean | undefined;
+    onDoubleClick?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+    ) => boolean | undefined;
+
+    // Only called for topmost layer
+    onMouseEnter?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+    ) => void;
+    onMouseLeave?: () => void;
 }
 
 export interface Source {

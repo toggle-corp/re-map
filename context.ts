@@ -34,6 +34,7 @@ interface SourceChildState {
     map?: mapboxgl.Map;
     mapStyle?: mapboxgl.MapboxOptions['style'];
     sourceKey?: string;
+    isSourceDefined: (sourceKey: string) => boolean;
 
     setLayer: (layer: Layer) => void;
     getLayer: (layerKey: string) => Layer | undefined;
@@ -44,6 +45,7 @@ const initialSourceChildState: SourceChildState = {
     map: undefined,
     mapStyle: 'mapbox://styles/mapbox/streets-v11',
     sourceKey: undefined,
+    isSourceDefined: () => false,
 
     setLayer: noop,
     getLayer: () => undefined,

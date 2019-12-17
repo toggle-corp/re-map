@@ -101,6 +101,7 @@ const MapSource = (props: Props) => {
         map,
         mapStyle,
         sourceKey,
+        isSourceDefined,
         getLayer: (layerKey: string) => {
             const source = getSource(sourceKey);
             if (!source) {

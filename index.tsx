@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
 
-import { Sources, Source } from './type';
+import { getLayerName } from './utils';
+import { Layer, Sources, Source } from './type';
 import { MapChildContext } from './context';
 
 const UNSUPPORTED_BROWSER = !mapboxgl.supported();
@@ -13,6 +14,14 @@ if (TOKEN) {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
+
+/*
+<MapState
+    'under MapSource'
+    'map-layer for tile'
+    'name of state'
+    'data'
+*/
 
 interface Props {
     mapStyle: mapboxgl.MapboxOptions['style'];
@@ -47,6 +56,16 @@ const Map: React.FC<Props> = (props) => {
 
     const sourcesRef = useRef<Sources>({});
 
+
+    interface LastIn {
+        id: string | number | undefined;
+        layerName: string;
+        sourceName: string;
+        sourceLayer: string | undefined;
+    }
+
+    const lastIn = useRef<LastIn | undefined>(undefined);
+
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<mapboxgl.Map | undefined>(undefined);
 
@@ -72,6 +91,182 @@ const Map: React.FC<Props> = (props) => {
             mapRef.current = mapboxglMap;
             console.warn('Creating new map');
 
+            function getLayersForSources(sources: Sources) {
+                const layers = Object.entries(sources)
+                    .filter(([_, source]) => !!source.layers)
+                    .map(([sourceKey, source]) => (
+                        Object.entries(source.layers)
+                            .map(([layerKey, layer]) => ({
+                                ...layer,
+                                sourceKey,
+                                layerKey: getLayerName(sourceKey, layerKey),
+                            }))
+                    ))
+                    .flat();
+                return layers;
+            }
+
+            interface ExtendedLayer extends Layer {
+                layerKey: string;
+                sourceKey: string;
+            }
+            function findLayerFromLayers(layers: ExtendedLayer[], layerKey: string) {
+                const layer = layers.find(l => l.layerKey === layerKey);
+                return layer;
+            }
+
+            const handleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+                if (!mapRef.current) {
+                    return;
+                }
+
+                const layers = getLayersForSources(sourcesRef.current);
+
+                const {
+                    point,
+                    lngLat,
+                } = data;
+
+                const clickableLayerKeys = layers
+                    .filter(layer => !!layer.onClick)
+                    .map(layer => layer.layerKey);
+
+                const clickableFeatures = mapRef.current.queryRenderedFeatures(
+                    point,
+                    { layers: clickableLayerKeys },
+                );
+
+                if (clickableFeatures.length <= 0) {
+                    console.warn('No clickable layer found.');
+                    // TODO: add a global handler
+                    return;
+                }
+                clickableFeatures.every((clickableFeature) => {
+                    const { layer: { id } } = clickableFeature;
+
+                    const layer = findLayerFromLayers(layers, id);
+                    if (layer && layer.onClick) {
+                        return !layer.onClick(clickableFeature, lngLat, point);
+                    }
+                    return false;
+                });
+            };
+
+            const handleDoubleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+                if (!mapRef.current) {
+                    return;
+                }
+
+                const layers = getLayersForSources(sourcesRef.current);
+
+                const {
+                    point,
+                    lngLat,
+                } = data;
+
+                const clickableLayerKeys = layers
+                    .filter(layer => !!layer.onDoubleClick)
+                    .map(layer => layer.layerKey);
+
+                const clickableFeatures = mapRef.current.queryRenderedFeatures(
+                    point,
+                    { layers: clickableLayerKeys },
+                );
+
+                if (clickableFeatures.length <= 0) {
+                    console.warn('No clickable layer found.');
+                    // TODO: add a global handler
+                    return;
+                }
+                clickableFeatures.every((clickableFeature) => {
+                    const { layer: { id } } = clickableFeature;
+
+                    const layer = findLayerFromLayers(layers, id);
+                    if (layer && layer.onDoubleClick) {
+                        return !layer.onDoubleClick(clickableFeature, lngLat, point);
+                    }
+                    return false;
+                });
+            };
+
+            const handleMouseMove = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+                if (!mapRef.current) {
+                    return;
+                }
+
+                const layers = getLayersForSources(sourcesRef.current);
+
+                const {
+                    point,
+                    lngLat,
+                } = data;
+
+                const interactiveLayerKeys = layers
+                    .filter(layer => !!layer.onClick || !!layer.onDoubleClick)
+                    .map(layer => layer.layerKey);
+                const interactiveFeatures = mapRef.current.queryRenderedFeatures(
+                    point,
+                    { layers: interactiveLayerKeys },
+                );
+                if (interactiveFeatures.length <= 0) {
+                    mapboxglMap.getCanvas().style.cursor = '';
+                } else {
+                    mapboxglMap.getCanvas().style.cursor = 'pointer';
+                }
+
+                const hoverableLayerKeys = layers
+                    .filter(layer => !!layer.onMouseEnter || !!layer.onMouseLeave)
+                    .map(layer => layer.layerKey);
+
+                const hoverableFeatures = mapRef.current.queryRenderedFeatures(
+                    point,
+                    { layers: hoverableLayerKeys },
+                );
+
+                if (hoverableFeatures.length <= 0) {
+                    if (lastIn.current) {
+                        const layer = findLayerFromLayers(layers, lastIn.current.layerName);
+                        if (layer && layer.onMouseLeave) {
+                            layer.onMouseLeave();
+                        }
+                    }
+                    lastIn.current = undefined;
+                    return;
+                }
+
+                const firstFeature = hoverableFeatures[0];
+                if (
+                    !lastIn.current
+                    || firstFeature.source !== lastIn.current.sourceName
+                    || firstFeature.sourceLayer !== lastIn.current.sourceLayer
+                    || firstFeature.layer.id !== lastIn.current.layerName
+                    || firstFeature.id !== lastIn.current.id
+                ) {
+                    if (lastIn.current) {
+                        const layer = findLayerFromLayers(layers, lastIn.current.layerName);
+                        if (layer && layer.onMouseLeave) {
+                            layer.onMouseLeave();
+                        }
+                    }
+                    lastIn.current = {
+                        id: firstFeature.id,
+                        layerName: firstFeature.layer.id,
+                        sourceName: firstFeature.source,
+                        sourceLayer: firstFeature.sourceLayer,
+                    };
+
+                    const { layer: { id } } = firstFeature;
+                    const layer = findLayerFromLayers(layers, id);
+                    if (layer && layer.onMouseEnter) {
+                        layer.onMouseEnter(firstFeature, lngLat, point);
+                    }
+                }
+            };
+
+            mapboxglMap.on('click', handleClick);
+            mapboxglMap.on('dblclick', handleDoubleClick);
+            mapboxglMap.on('mousemove', handleMouseMove);
+
             if (scaleControlShown) {
                 const scale = new mapboxgl.ScaleControl(scaleControlOptions);
                 mapboxglMap.addControl(scale, scaleControlPosition);
@@ -94,9 +289,17 @@ const Map: React.FC<Props> = (props) => {
             const destroy = () => {
                 clearTimeout(timer);
 
+                mapboxglMap.off('click', handleClick);
+                mapboxglMap.off('dblclick', handleDoubleClick);
+                mapboxglMap.off('mousemove', handleMouseMove);
+
+                sourcesRef.current = {};
+                lastIn.current = undefined;
+                /*
                 Object.entries(sourcesRef.current).forEach(([_, source]) => {
                     source.destroy();
                 });
+                */
 
                 console.warn('Removing map');
                 mapboxglMap.remove();
@@ -113,15 +316,18 @@ const Map: React.FC<Props> = (props) => {
                 return noop;
             }
             if (mapRef.current && mapStyleFromProps) {
-                // NOTE: destroying every source and layer before switching map
+                sourcesRef.current = {};
+                lastIn.current = undefined;
+                /*
                 Object.entries(sourcesRef.current).forEach(([_, source]) => {
                     source.destroy();
                 });
+                */
 
                 console.warn(`Setting map style ${mapStyleFromProps}`);
                 mapRef.current.setStyle(mapStyleFromProps);
 
-                const onStyleData = (event: mapboxgl.MapEventType['styledata'] & mapboxgl.EventData) => {
+                const onStyleData = () => {
                     console.info('Passing mapStyle:', mapStyleFromProps);
                     setMapStyle(mapStyleFromProps);
                 };

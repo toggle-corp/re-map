@@ -47,9 +47,10 @@ const MapSource = (props: Props) => {
 
     useEffect(
         () => {
-            if (!map || !sourceKey) {
+            if (!map || !sourceKey || !mapStyle) {
                 return noop;
             }
+
             const options = sourceOptions.type === 'geojson'
                 ? { ...sourceOptions, data: geoJSON }
                 : sourceOptions;
@@ -81,10 +82,11 @@ const MapSource = (props: Props) => {
     // NOTE: no need to call for map, mapStyle or sourceKey change
     useEffect(
         () => {
-            if (!map || !sourceKey || !geoJSON) {
+            if (!map || !sourceKey || !geoJSON || !mapStyle) {
                 return;
             }
             const source = map.getSource(sourceKey);
+            // FIXME: avoid redundant call to this effect
             if (source.type === 'geojson') {
                 console.warn(`Setting source geojson: ${sourceKey}`);
                 source.setData(geoJSON);

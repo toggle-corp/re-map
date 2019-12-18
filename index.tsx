@@ -53,9 +53,9 @@ const Map: React.FC<Props> = (props) => {
         navControlPosition,
     } = props;
     const [mapStyle, setMapStyle] = useState<mapboxgl.MapboxOptions['style']>(undefined);
+    const [loaded, setLoaded] = useState<boolean>(false);
 
     const sourcesRef = useRef<Sources>({});
-
 
     interface LastIn {
         id: string | number | undefined;
@@ -225,6 +225,14 @@ const Map: React.FC<Props> = (props) => {
 
                 if (hoverableFeatures.length <= 0) {
                     if (lastIn.current) {
+                        mapboxglMap.removeFeatureState(
+                            {
+                                id: lastIn.current.id,
+                                source: lastIn.current.sourceName,
+                                sourceLayer: lastIn.current.sourceLayer,
+                            },
+                            'hovered',
+                        );
                         const layer = findLayerFromLayers(layers, lastIn.current.layerName);
                         if (layer && layer.onMouseLeave) {
                             layer.onMouseLeave();
@@ -243,17 +251,41 @@ const Map: React.FC<Props> = (props) => {
                     || firstFeature.id !== lastIn.current.id
                 ) {
                     if (lastIn.current) {
+                        mapboxglMap.removeFeatureState(
+                            {
+                                id: lastIn.current.id,
+                                source: lastIn.current.sourceName,
+                                sourceLayer: lastIn.current.sourceLayer,
+                            },
+                            'hovered',
+                        );
+                    }
+                    if (lastIn.current && (
+                        firstFeature.source !== lastIn.current.sourceName
+                        || firstFeature.sourceLayer !== lastIn.current.sourceLayer
+                        || firstFeature.layer.id !== lastIn.current.layerName
+                    )) {
                         const layer = findLayerFromLayers(layers, lastIn.current.layerName);
                         if (layer && layer.onMouseLeave) {
                             layer.onMouseLeave();
                         }
                     }
+
                     lastIn.current = {
                         id: firstFeature.id,
                         layerName: firstFeature.layer.id,
                         sourceName: firstFeature.source,
                         sourceLayer: firstFeature.sourceLayer,
                     };
+
+                    mapboxglMap.setFeatureState(
+                        {
+                            id: lastIn.current.id,
+                            source: lastIn.current.sourceName,
+                            sourceLayer: lastIn.current.sourceLayer,
+                        },
+                        { hovered: true },
+                    );
 
                     const { layer: { id } } = firstFeature;
                     const layer = findLayerFromLayers(layers, id);
@@ -333,9 +365,16 @@ const Map: React.FC<Props> = (props) => {
                 };
                 mapRef.current.once('styledata', onStyleData);
 
+                const onLoad = () => {
+                    setLoaded(true);
+                };
+                mapRef.current.once('load', onLoad);
+
                 return () => {
                     if (mapRef.current) {
                         mapRef.current.off('styledata', onStyleData);
+
+                        mapRef.current.off('load', onLoad);
                     }
                 };
             }
@@ -351,7 +390,7 @@ const Map: React.FC<Props> = (props) => {
 
     const childrenProps = {
         map: mapRef.current,
-        mapStyle,
+        mapStyle: loaded ? mapStyle : undefined,
         mapContainerRef,
         getSource: (sourceKey: string) => sourcesRef.current[sourceKey],
         isSourceDefined: (sourceKey: string) => !!sourcesRef.current[sourceKey],

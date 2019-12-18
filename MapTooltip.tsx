@@ -13,6 +13,7 @@ interface Props {
     hidden: boolean;
     onHide?: () => void;
     tooltipOptions?: mapboxgl.PopupOptions;
+    trackPointer: boolean;
 }
 
 const MapTooltip = (props: Props) => {
@@ -23,6 +24,7 @@ const MapTooltip = (props: Props) => {
         hidden,
         tooltipOptions,
         onHide,
+        trackPointer,
     } = props;
 
     const tooltipContainerRef = useRef<HTMLDivElement | null>(null);
@@ -41,9 +43,12 @@ const MapTooltip = (props: Props) => {
 
             const popup = new mapboxgl.Popup(tooltipOptions)
                 .setLngLat(coordinates)
-                .setDOMContent(tooltipContainerRef.current);
+                .setDOMContent(tooltipContainerRef.current)
+                .addTo(map);
 
-            popup.addTo(map);
+            if (trackPointer) {
+                popup.trackPointer();
+            }
 
             popup.on('close', () => {
                 if (onHide) {
@@ -61,6 +66,18 @@ const MapTooltip = (props: Props) => {
         },
         [map, hidden],
     );
+    useEffect(
+        () => {
+            if (!map || hidden) {
+                return;
+            }
+            ReactDOM.render(
+                children,
+                tooltipContainerRef.current,
+            );
+        },
+        [children],
+    );
 
     return null;
 };
@@ -68,6 +85,7 @@ const MapTooltip = (props: Props) => {
 
 MapTooltip.defaultProps = {
     hidden: false,
+    trackPointer: false,
 };
 
 export default MapTooltip;

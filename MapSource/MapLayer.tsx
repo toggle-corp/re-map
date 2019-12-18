@@ -89,6 +89,49 @@ const MapLayer = (props: Props) => {
         [map, mapStyle, sourceKey, layerKey],
     );
 
+    const {
+        paint,
+        filter,
+        layout,
+    } = layerOptions;
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !layerKey || !paint) {
+                return;
+            }
+            const id = getLayerName(sourceKey, layerKey);
+            Object.entries(paint).forEach(([key, value]) => {
+                map.setPaintProperty(id, key, value);
+            });
+        },
+        [paint],
+    );
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !layerKey || !layout) {
+                return;
+            }
+            const id = getLayerName(sourceKey, layerKey);
+            Object.entries(layout).forEach(([key, value]) => {
+                map.setLayoutProperty(id, key, value);
+            });
+        },
+        [layout],
+    );
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !layerKey || !filter) {
+                return;
+            }
+            const id = getLayerName(sourceKey, layerKey);
+            map.setFilter(id, filter);
+        },
+        [filter],
+    );
+
     return null;
 };
 

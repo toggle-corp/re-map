@@ -28,6 +28,7 @@ interface Props {
         point: mapboxgl.Point,
     ) => void;
     onMouseLeave?: () => void;
+    beneath?: string;
 }
 
 const MapLayer = (props: Props) => {
@@ -38,6 +39,7 @@ const MapLayer = (props: Props) => {
         onDoubleClick,
         onMouseEnter,
         onMouseLeave,
+        beneath,
     } = props;
 
     const {
@@ -60,11 +62,14 @@ const MapLayer = (props: Props) => {
             }
             const id = getLayerName(sourceKey, layerKey);
             console.warn(`Creating new layer: ${id}`);
-            map.addLayer({
-                ...layerOptions,
-                id,
-                source: sourceKey,
-            });
+            map.addLayer(
+                {
+                    ...layerOptions,
+                    id,
+                    source: sourceKey,
+                },
+                beneath,
+            );
 
             const destroy = () => {
                 const layer = getLayer(layerKey);

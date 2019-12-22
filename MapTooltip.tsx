@@ -33,6 +33,7 @@ const MapTooltip = (props: Props) => {
 
     const [initialTooltipOptions] = useState(tooltipOptions);
     const [initialTrackPointer] = useState(trackPointer);
+    const [initialCoordinates] = useState(coordinates);
 
     // Create tooltip <div>
     useEffect(
@@ -72,6 +73,9 @@ const MapTooltip = (props: Props) => {
                 .setDOMContent(tooltipContainerRef.current)
                 .addTo(map);
 
+            if (initialCoordinates) {
+                popupRef.current.setLngLat(initialCoordinates);
+            }
             if (initialTrackPointer) {
                 popupRef.current.trackPointer();
             }
@@ -83,18 +87,18 @@ const MapTooltip = (props: Props) => {
                 }
             };
         },
-        [map, hidden, initialTooltipOptions, initialTrackPointer],
+        [map, hidden, initialTooltipOptions, initialTrackPointer, initialCoordinates],
     );
 
     // Handle coordinates change
     useEffect(
         () => {
-            if (!map || !popupRef.current) {
+            if (!map || !popupRef.current || !coordinates || initialTrackPointer) {
                 return;
             }
             popupRef.current.setLngLat(coordinates);
         },
-        [map, coordinates],
+        [map, coordinates, initialTrackPointer],
     );
 
     // Handle onHide change

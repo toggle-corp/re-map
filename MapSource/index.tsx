@@ -21,7 +21,7 @@ interface Props {
     sourceOptions: mapboxgl.AnySourceData;
     sourceKey: string;
 
-    geoJSON?: GeoJSON.Feature<GeoJSON.Geometry>
+    geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
 }
@@ -30,7 +30,7 @@ const MapSource = (props: Props) => {
     const {
         sourceOptions,
         sourceKey,
-        geoJSON,
+        geoJson,
         children,
     } = props;
 
@@ -45,7 +45,7 @@ const MapSource = (props: Props) => {
     } = useContext(MapChildContext);
 
     const [forceUpdate] = useCounter(0);
-    const [initialGeoJSON] = useState(geoJSON);
+    const [initialGeoJson] = useState(geoJson);
     const [initialSourceOptions] = useState(sourceOptions);
 
     // Add source in mapboxgl and notify addition to parent
@@ -56,7 +56,7 @@ const MapSource = (props: Props) => {
             }
 
             const options = initialSourceOptions.type === 'geojson'
-                ? { ...initialSourceOptions, data: initialGeoJSON }
+                ? { ...initialSourceOptions, data: initialGeoJson }
                 : initialSourceOptions;
 
             console.warn(`Creating new source: ${sourceKey}`);
@@ -84,25 +84,25 @@ const MapSource = (props: Props) => {
             map, mapStyle, sourceKey,
             forceUpdate,
             getSource, removeSource, setSource,
-            initialGeoJSON, initialSourceOptions,
+            initialGeoJson, initialSourceOptions,
         ],
     );
 
-    // Handle geoJSON change
+    // Handle geoJson change
     // TODO: don't call in first render
     useEffect(
         () => {
-            if (!map || !sourceKey || !geoJSON || !mapStyle) {
+            if (!map || !sourceKey || !geoJson || !mapStyle) {
                 return;
             }
             const source = map.getSource(sourceKey);
             // FIXME: avoid redundant call to this effect
             if (source.type === 'geojson') {
                 console.warn(`Setting source geojson: ${sourceKey}`);
-                source.setData(geoJSON);
+                source.setData(geoJson);
             }
         },
-        [map, mapStyle, sourceKey, geoJSON],
+        [map, mapStyle, sourceKey, geoJson],
     );
 
     const getLayer = useCallback(

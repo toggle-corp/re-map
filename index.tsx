@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
 
@@ -12,16 +12,42 @@ if (TOKEN) {
     mapboxgl.accessToken = TOKEN;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
+type Position = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
-/*
-<MapState
-    'under MapSource'
-    'map-layer for tile'
-    'name of state'
-    'data'
-*/
+interface LastIn {
+    id: string | number | undefined;
+    layerName: string;
+    sourceName: string;
+    sourceLayer: string | undefined;
+}
+
+interface ExtendedLayer extends Layer {
+    layerKey: string;
+    sourceKey: string;
+}
+
+function findLayerFromLayers(layers: ExtendedLayer[], layerKey: string) {
+    const layer = layers.find(l => l.layerKey === layerKey);
+    return layer;
+}
+
+function getLayersForSources(sources: Sources) {
+    const layers = Object.entries(sources)
+        .filter(([_, source]) => !!source.layers)
+        .map(([sourceKey, source]) => (
+            Object.entries(source.layers)
+                .map(([layerKey, layer]) => ({
+                    ...layer,
+                    sourceKey,
+                    layerKey: getLayerName(sourceKey, layerKey),
+                }))
+        ))
+        .flat();
+    return layers;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function noop() {}
 
 interface Props {
     mapStyle: mapboxgl.MapboxOptions['style'];
@@ -36,9 +62,6 @@ interface Props {
     navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
 }
 
-type Position = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-
-
 const Map: React.FC<Props> = (props) => {
     const {
         mapStyle: mapStyleFromProps,
@@ -51,24 +74,20 @@ const Map: React.FC<Props> = (props) => {
         navControlShown,
         navControlOptions,
         navControlPosition,
+
+        children,
     } = props;
+
     const [mapStyle, setMapStyle] = useState<mapboxgl.MapboxOptions['style']>(undefined);
     const [loaded, setLoaded] = useState<boolean>(false);
 
-    const sourcesRef = useRef<Sources>({});
-
-    interface LastIn {
-        id: string | number | undefined;
-        layerName: string;
-        sourceName: string;
-        sourceLayer: string | undefined;
-    }
-
     const lastIn = useRef<LastIn | undefined>(undefined);
-
-    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapDestroyedRef = useRef(false);
+    const sourcesRef = useRef<Sources>({});
     const mapRef = useRef<mapboxgl.Map | undefined>(undefined);
+    const mapContainerRef = useRef<HTMLDivElement>(null);
 
+    // Create map
     useEffect(
         () => {
             if (UNSUPPORTED_BROWSER) {
@@ -89,31 +108,27 @@ const Map: React.FC<Props> = (props) => {
             });
 
             mapRef.current = mapboxglMap;
-            console.warn('Creating new map');
+            // FIXME: we souldn't always set cursor to pointer
+            // mapboxglMap.getCanvas().style.cursor = 'pointer';
 
-            function getLayersForSources(sources: Sources) {
-                const layers = Object.entries(sources)
-                    .filter(([_, source]) => !!source.layers)
-                    .map(([sourceKey, source]) => (
-                        Object.entries(source.layers)
-                            .map(([layerKey, layer]) => ({
-                                ...layer,
-                                sourceKey,
-                                layerKey: getLayerName(sourceKey, layerKey),
-                            }))
-                    ))
-                    .flat();
-                return layers;
+            if (scaleControlShown) {
+                const scale = new mapboxgl.ScaleControl(scaleControlOptions);
+                mapboxglMap.addControl(scale, scaleControlPosition);
             }
 
-            interface ExtendedLayer extends Layer {
-                layerKey: string;
-                sourceKey: string;
+            if (navControlShown) {
+                // NOTE: don't we need to remove control on unmount?
+                const nav = new mapboxgl.NavigationControl(navControlOptions);
+                mapboxglMap.addControl(
+                    nav,
+                    navControlPosition,
+                );
             }
-            function findLayerFromLayers(layers: ExtendedLayer[], layerKey: string) {
-                const layer = layers.find(l => l.layerKey === layerKey);
-                return layer;
-            }
+
+            // TODO: need to resize map in some cases
+            const timer = setTimeout(() => {
+                mapboxglMap.resize();
+            }, 200);
 
             const handleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
                 if (!mapRef.current) {
@@ -201,6 +216,8 @@ const Map: React.FC<Props> = (props) => {
                     lngLat,
                 } = data;
 
+                /*
+                // FIXME: this interferes with the mapboxgl draw plugin
                 const interactiveLayerKeys = layers
                     .filter(layer => !!layer.onClick || !!layer.onDoubleClick)
                     .map(layer => layer.layerKey);
@@ -213,6 +230,7 @@ const Map: React.FC<Props> = (props) => {
                 } else {
                     mapboxglMap.getCanvas().style.cursor = 'pointer';
                 }
+                */
 
                 const hoverableLayerKeys = layers
                     .filter(layer => !!layer.onMouseEnter || !!layer.onMouseLeave)
@@ -299,25 +317,6 @@ const Map: React.FC<Props> = (props) => {
             mapboxglMap.on('dblclick', handleDoubleClick);
             mapboxglMap.on('mousemove', handleMouseMove);
 
-            if (scaleControlShown) {
-                const scale = new mapboxgl.ScaleControl(scaleControlOptions);
-                mapboxglMap.addControl(scale, scaleControlPosition);
-            }
-
-            if (navControlShown) {
-                // NOTE: don't we need to remove control on unmount?
-                const nav = new mapboxgl.NavigationControl(navControlOptions);
-                mapboxglMap.addControl(
-                    nav,
-                    navControlPosition,
-                );
-            }
-
-            // TODO: need to resize map in some cases
-            const timer = setTimeout(() => {
-                mapboxglMap.resize();
-            }, 200);
-
             const destroy = () => {
                 clearTimeout(timer);
 
@@ -327,11 +326,7 @@ const Map: React.FC<Props> = (props) => {
 
                 sourcesRef.current = {};
                 lastIn.current = undefined;
-                /*
-                Object.entries(sourcesRef.current).forEach(([_, source]) => {
-                    source.destroy();
-                });
-                */
+                mapDestroyedRef.current = true;
 
                 console.warn('Removing map');
                 mapboxglMap.remove();
@@ -342,66 +337,73 @@ const Map: React.FC<Props> = (props) => {
         [],
     );
 
+    // Handle style load and map ready
     useEffect(
         () => {
-            if (UNSUPPORTED_BROWSER) {
+            if (UNSUPPORTED_BROWSER || !mapRef.current || !mapStyleFromProps) {
                 return noop;
             }
-            if (mapRef.current && mapStyleFromProps) {
-                sourcesRef.current = {};
-                lastIn.current = undefined;
-                /*
-                Object.entries(sourcesRef.current).forEach(([_, source]) => {
-                    source.destroy();
-                });
-                */
+            sourcesRef.current = {};
+            lastIn.current = undefined;
 
-                console.warn(`Setting map style ${mapStyleFromProps}`);
-                mapRef.current.setStyle(mapStyleFromProps);
+            console.warn(`Setting map style ${mapStyleFromProps}`);
+            mapRef.current.setStyle(mapStyleFromProps);
 
-                const onStyleData = () => {
-                    console.info('Passing mapStyle:', mapStyleFromProps);
-                    setMapStyle(mapStyleFromProps);
-                };
-                mapRef.current.once('styledata', onStyleData);
+            const onStyleData = () => {
+                console.info('Passing mapStyle:', mapStyleFromProps);
+                setMapStyle(mapStyleFromProps);
+            };
+            mapRef.current.once('styledata', onStyleData);
 
-                const onLoad = () => {
-                    setLoaded(true);
-                };
-                mapRef.current.once('load', onLoad);
+            const onLoad = () => {
+                setLoaded(true);
+            };
+            mapRef.current.once('load', onLoad);
 
-                return () => {
-                    if (mapRef.current) {
-                        mapRef.current.off('styledata', onStyleData);
+            return () => {
+                if (mapRef.current) {
+                    mapRef.current.off('styledata', onStyleData);
 
-                        mapRef.current.off('load', onLoad);
-                    }
-                };
-            }
-            return noop;
+                    mapRef.current.off('load', onLoad);
+                }
+            };
         },
         [mapStyleFromProps],
     );
 
-    const children = props.children as React.ReactElement<any>;
-    if (UNSUPPORTED_BROWSER) {
-        return children;
-    }
 
-    const childrenProps = {
-        map: mapRef.current,
-        mapStyle: loaded ? mapStyle : undefined,
-        mapContainerRef,
-        getSource: (sourceKey: string) => sourcesRef.current[sourceKey],
-        isSourceDefined: (sourceKey: string) => !!sourcesRef.current[sourceKey],
-        setSource: (source: Source) => {
+    const isMapDestroyed = useCallback(
+        () => !!mapDestroyedRef.current,
+        [],
+    );
+
+    const isSourceDefined = useCallback(
+        (sourceKey: string) => (
+            !!sourcesRef.current[sourceKey]
+        ),
+        [],
+    );
+
+    const getSource = useCallback(
+        (sourceKey: string) => (
+            sourcesRef.current[sourceKey]
+        ),
+        [],
+    );
+
+    const setSource = useCallback(
+        (source: Source) => {
             sourcesRef.current = produce(sourcesRef.current, (safeSource) => {
                 const { name } = source;
                 // eslint-disable-next-line no-param-reassign
                 safeSource[name] = source;
             });
         },
-        removeSource: (sourceKey: string) => {
+        [],
+    );
+
+    const removeSource = useCallback(
+        (sourceKey: string) => {
             if (!sourcesRef.current[sourceKey]) {
                 // console.error(`No source named: ${sourceKey}`);
                 return;
@@ -417,11 +419,30 @@ const Map: React.FC<Props> = (props) => {
                 mapRef.current.removeSource(sourceKey);
             }
         },
+        [],
+    );
+
+    const mapChildren = children as React.ReactElement<unknown>;
+    if (UNSUPPORTED_BROWSER) {
+        return mapChildren;
+    }
+
+    const childrenProps = {
+        map: mapRef.current,
+        mapStyle: loaded ? mapStyle : undefined,
+        mapContainerRef,
+
+        isSourceDefined,
+        getSource,
+        setSource,
+        removeSource,
+
+        isMapDestroyed,
     };
 
     return (
         <MapChildContext.Provider value={childrenProps}>
-            {children}
+            {mapChildren}
         </MapChildContext.Provider>
     );
 };

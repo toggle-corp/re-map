@@ -11,6 +11,7 @@ interface MapChildState {
     getSource: (sourceKey: string) => Source | undefined;
     removeSource: (sourceKey: string) => void;
     isSourceDefined: (sourceKey: string) => boolean;
+    isMapDestroyed: () => boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -25,6 +26,7 @@ const initialMapChildState: MapChildState = {
     getSource: () => undefined,
     removeSource: noop,
     isSourceDefined: () => false,
+    isMapDestroyed: () => false,
 };
 
 export const MapChildContext = React.createContext(initialMapChildState);
@@ -34,9 +36,9 @@ interface SourceChildState {
     map?: mapboxgl.Map;
     mapStyle?: mapboxgl.MapboxOptions['style'];
     sourceKey?: string;
-    isSourceDefined: (sourceKey: string) => boolean;
+    isMapDestroyed: () => boolean;
 
-    setLayer: (layer: Layer) => void;
+    setLayer: (layerKey: string, method: (layer: Layer | undefined) => Layer | undefined) => void;
     getLayer: (layerKey: string) => Layer | undefined;
     removeLayer: (layerKey: string) => void;
 }
@@ -45,7 +47,7 @@ const initialSourceChildState: SourceChildState = {
     map: undefined,
     mapStyle: 'mapbox://styles/mapbox/streets-v11',
     sourceKey: undefined,
-    isSourceDefined: () => false,
+    isMapDestroyed: () => false,
 
     setLayer: noop,
     getLayer: () => undefined,

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
 
@@ -10,9 +10,9 @@ const noop = () => {};
 
 function useCounter(initialValue = 0): [() => void, number] {
     const [value, updateValue] = useState(initialValue);
-    const increaseValue = () => {
-        updateValue(value + 1);
-    };
+    const increaseValue = useCallback(() => {
+        updateValue(v => v + 1);
+    }, []);
     return [increaseValue, value];
 }
 
@@ -41,19 +41,23 @@ const MapSource = (props: Props) => {
         getSource,
         removeSource,
         isSourceDefined,
+        isMapDestroyed,
     } = useContext(MapChildContext);
 
     const [forceUpdate] = useCounter(0);
+    const [initialGeoJSON] = useState(geoJSON);
+    const [initialSourceOptions] = useState(sourceOptions);
 
+    // Add source in mapboxgl and notify addition to parent
     useEffect(
         () => {
             if (!map || !sourceKey || !mapStyle) {
                 return noop;
             }
 
-            const options = sourceOptions.type === 'geojson'
-                ? { ...sourceOptions, data: geoJSON }
-                : sourceOptions;
+            const options = initialSourceOptions.type === 'geojson'
+                ? { ...initialSourceOptions, data: initialGeoJSON }
+                : initialSourceOptions;
 
             console.warn(`Creating new source: ${sourceKey}`);
             map.addSource(sourceKey, options);
@@ -76,10 +80,16 @@ const MapSource = (props: Props) => {
 
             return destroy;
         },
-        [map, mapStyle, sourceKey],
+        [
+            map, mapStyle, sourceKey,
+            forceUpdate,
+            getSource, removeSource, setSource,
+            initialGeoJSON, initialSourceOptions,
+        ],
     );
 
-    // NOTE: no need to call for map, mapStyle or sourceKey change
+    // Handle geoJSON change
+    // TODO: don't call in first render
     useEffect(
         () => {
             if (!map || !sourceKey || !geoJSON || !mapStyle) {
@@ -92,27 +102,23 @@ const MapSource = (props: Props) => {
                 source.setData(geoJSON);
             }
         },
-        [geoJSON],
+        [map, mapStyle, sourceKey, geoJSON],
     );
 
-    if (!isSourceDefined(sourceKey)) {
-        return null;
-    }
-
-    const childrenProps = {
-        map,
-        mapStyle,
-        sourceKey,
-        isSourceDefined,
-        getLayer: (layerKey: string) => {
+    const getLayer = useCallback(
+        (layerKey: string) => {
             const source = getSource(sourceKey);
             if (!source) {
                 return undefined;
             }
             return source.layers[layerKey];
         },
-        setLayer: (layer: Layer) => {
-            const { name } = layer;
+        [sourceKey, getSource],
+    );
+
+    const setLayer = useCallback(
+        (name: string, method: (l: Layer | undefined) => (Layer | undefined)) => {
+            // const { name } = layer;
             const source = getSource(sourceKey);
             if (!source) {
                 console.error(`No source named: ${sourceKey}`);
@@ -120,12 +126,22 @@ const MapSource = (props: Props) => {
             }
             // console.warn(`Registering layer: ${name}`);
             const newSource = produce(source, (safeSource) => {
-                // eslint-disable-next-line no-param-reassign
-                safeSource.layers[name] = layer;
+                const value = method(source.layers[name]);
+                if (value !== undefined) {
+                    // eslint-disable-next-line no-param-reassign
+                    safeSource.layers[name] = value;
+                } else {
+                    // eslint-disable-next-line no-param-reassign
+                    delete safeSource.layers[name];
+                }
             });
             setSource(newSource);
         },
-        removeLayer: (layerKey: string) => {
+        [sourceKey, getSource, setSource],
+    );
+
+    const removeLayer = useCallback(
+        (layerKey: string) => {
             const source = getSource(sourceKey);
             if (!source) {
                 console.error(`No source named: ${sourceKey}`);
@@ -144,6 +160,21 @@ const MapSource = (props: Props) => {
 
             setSource(newSource);
         },
+        [map, sourceKey, getSource, setSource],
+    );
+
+    if (!isSourceDefined(sourceKey)) {
+        return null;
+    }
+
+    const childrenProps = {
+        map,
+        mapStyle,
+        sourceKey,
+        getLayer,
+        setLayer,
+        removeLayer,
+        isMapDestroyed,
     };
 
     return (

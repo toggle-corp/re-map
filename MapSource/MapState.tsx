@@ -1,6 +1,8 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { difference } from '@togglecorp/fujs';
 
 import { SourceChildContext } from '../context';
+import { usePrevious } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
@@ -23,9 +25,14 @@ function MapState<T>(props: Props<T>) {
         mapStyle,
 
         sourceKey,
-        isSourceDefined,
+        isMapDestroyed,
     } = useContext(SourceChildContext);
 
+    const [initialAttributes] = useState(attributes);
+
+    const prevAttributes = usePrevious(attributes, []);
+
+    // Handle attributes change
     useEffect(
         () => {
             if (!map || !sourceKey) {
@@ -35,7 +42,7 @@ function MapState<T>(props: Props<T>) {
             // eslint-disable-next-line max-len
             // console.warn(`Setting source state: "${sourceKey}" with "${sourceLayer || 'no'}" source layer.`);
 
-            attributes.forEach((attribute) => {
+            initialAttributes.forEach((attribute) => {
                 map.setFeatureState(
                     {
                         id: attribute.id,
@@ -47,8 +54,8 @@ function MapState<T>(props: Props<T>) {
             });
 
             return () => {
-                if (isSourceDefined(sourceKey)) {
-                    attributes.forEach((attribute) => {
+                if (!isMapDestroyed()) {
+                    initialAttributes.forEach((attribute) => {
                         map.removeFeatureState(
                             {
                                 id: attribute.id,
@@ -61,7 +68,39 @@ function MapState<T>(props: Props<T>) {
                 }
             };
         },
-        [map, mapStyle, sourceKey, sourceLayer, attributeKey, attributes],
+        [map, mapStyle, sourceKey, sourceLayer, attributeKey, initialAttributes, isMapDestroyed],
+    );
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey) {
+                return;
+            }
+            const toBeDeleted = difference(new Set(prevAttributes), new Set(attributes));
+            const toBeAddedModified = difference(new Set(attributes), toBeDeleted);
+
+            toBeDeleted.forEach((attribute) => {
+                map.removeFeatureState(
+                    {
+                        id: attribute.id,
+                        source: sourceKey,
+                        sourceLayer,
+                    },
+                    attributeKey,
+                );
+            });
+            toBeAddedModified.forEach((attribute) => {
+                map.setFeatureState(
+                    {
+                        id: attribute.id,
+                        source: sourceKey,
+                        sourceLayer,
+                    },
+                    { [attributeKey]: attribute.value },
+                );
+            });
+        },
+        [map, sourceKey, attributes, prevAttributes, attributeKey, sourceLayer],
     );
 
     return null;

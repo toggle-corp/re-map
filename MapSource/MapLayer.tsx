@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 import { getLayerName } from '../utils';
@@ -42,6 +42,9 @@ const MapLayer = (props: Props) => {
         beneath,
     } = props;
 
+    const [initialLayerOptions] = useState(layerOptions);
+    const [initialBeneath] = useState(beneath);
+
     const {
         map,
         mapStyle,
@@ -53,8 +56,7 @@ const MapLayer = (props: Props) => {
         getLayer,
     } = useContext(SourceChildContext);
 
-    // TODO: update onClick, disabled on change
-
+    // Add layer in mapboxgl
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey) {
@@ -64,11 +66,11 @@ const MapLayer = (props: Props) => {
             console.warn(`Creating new layer: ${id}`);
             map.addLayer(
                 {
-                    ...layerOptions,
+                    ...initialLayerOptions,
                     id,
                     source: sourceKey,
                 },
-                beneath,
+                initialBeneath,
             );
 
             const destroy = () => {
@@ -80,18 +82,45 @@ const MapLayer = (props: Props) => {
                 removeLayer(id);
             };
 
-            setLayer({
-                name: layerKey,
-                destroy,
-                onClick,
-                onDoubleClick,
-                onMouseEnter,
-                onMouseLeave,
-            });
+            setLayer(
+                layerKey,
+                () => ({
+                    name: layerKey,
+                    destroy,
+                }),
+            );
 
             return destroy;
         },
-        [map, mapStyle, sourceKey, layerKey],
+        [
+            map, mapStyle, sourceKey, layerKey,
+            initialLayerOptions, initialBeneath,
+            getLayer, removeLayer, setLayer,
+        ],
+    );
+
+    // Notify modification on layer
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !layerKey) {
+                return;
+            }
+            setLayer(
+                layerKey,
+                layer => layer && ({
+                    ...layer,
+                    onClick,
+                    onDoubleClick,
+                    onMouseEnter,
+                    onMouseLeave,
+                }),
+            );
+        },
+        [
+            map, sourceKey, layerKey,
+            onClick, onDoubleClick, onMouseEnter, onMouseLeave,
+            setLayer,
+        ],
     );
 
     const {
@@ -100,6 +129,8 @@ const MapLayer = (props: Props) => {
         layout,
     } = layerOptions;
 
+    // Handle paint change
+    // TODO: don't call in first render
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey || !paint) {
@@ -110,9 +141,11 @@ const MapLayer = (props: Props) => {
                 map.setPaintProperty(id, key, value);
             });
         },
-        [paint],
+        [map, sourceKey, layerKey, paint],
     );
 
+    // Handle layout change
+    // TODO: dont' call in first render
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey || !layout) {
@@ -123,9 +156,11 @@ const MapLayer = (props: Props) => {
                 map.setLayoutProperty(id, key, value);
             });
         },
-        [layout],
+        [map, sourceKey, layerKey, layout],
     );
 
+    // Handle filter change
+    // TODO: don't call in first render
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey || !filter) {
@@ -134,7 +169,7 @@ const MapLayer = (props: Props) => {
             const id = getLayerName(sourceKey, layerKey);
             map.setFilter(id, filter);
         },
-        [filter],
+        [map, sourceKey, layerKey, filter],
     );
 
     return null;

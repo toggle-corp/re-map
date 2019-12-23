@@ -36,6 +36,7 @@ interface SourceChildState {
     map?: mapboxgl.Map;
     mapStyle?: mapboxgl.MapboxOptions['style'];
     sourceKey?: string;
+    isSourceDefined: (sourceKey: string) => boolean;
     isMapDestroyed: () => boolean;
 
     setLayer: (layerKey: string, method: (layer: Layer | undefined) => Layer | undefined) => void;
@@ -47,6 +48,7 @@ const initialSourceChildState: SourceChildState = {
     map: undefined,
     mapStyle: 'mapbox://styles/mapbox/streets-v11',
     sourceKey: undefined,
+    isSourceDefined: () => false,
     isMapDestroyed: () => false,
 
     setLayer: noop,

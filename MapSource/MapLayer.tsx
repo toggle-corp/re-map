@@ -79,7 +79,7 @@ const MapLayer = (props: Props) => {
                     // console.error(`No layer named: ${id}`);
                     return;
                 }
-                removeLayer(id);
+                removeLayer(layerKey);
             };
 
             setLayer(

@@ -378,9 +378,10 @@ const Map: React.FC<Props> = (props) => {
     );
 
     const isSourceDefined = useCallback(
-        (sourceKey: string) => (
-            !!sourcesRef.current[sourceKey]
-        ),
+        (sourceKey: string) => {
+            console.warn(Object.keys(sourcesRef.current));
+            return !!sourcesRef.current[sourceKey];
+        },
         [],
     );
 
@@ -415,6 +416,7 @@ const Map: React.FC<Props> = (props) => {
             });
 
             if (mapRef.current) {
+                // console.warn(Object.keys(mapRef.current.style.sourceCaches));
                 console.warn(`Removing source: ${sourceKey}`);
                 mapRef.current.removeSource(sourceKey);
             }

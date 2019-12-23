@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
 
+import { getLayerName } from '../utils';
 import { MapChildContext, SourceChildContext } from '../context';
 import { Layer } from '../type';
 
@@ -147,16 +148,25 @@ const MapSource = (props: Props) => {
                 console.error(`No source named: ${sourceKey}`);
                 return;
             }
+
+            const layer = source.layers[layerKey];
+            if (!layer) {
+                console.error(`No layer named: ${layerKey}`, source);
+                return;
+            }
+
+            // NOTE: check if map is dis-mounted?
+            if (map) {
+                const id = getLayerName(sourceKey, layerKey);
+                console.warn(`Removing layer: ${id}`);
+                map.removeLayer(id);
+            }
+
             // console.warn(`Registering layer: ${layerKey}`);
             const newSource = produce(source, (safeSource) => {
                 // eslint-disable-next-line no-param-reassign
                 delete safeSource.layers[layerKey];
             });
-
-            if (map) {
-                console.warn(`Removing layer: ${layerKey}`);
-                map.removeLayer(layerKey);
-            }
 
             setSource(newSource);
         },
@@ -174,6 +184,7 @@ const MapSource = (props: Props) => {
         getLayer,
         setLayer,
         removeLayer,
+        isSourceDefined,
         isMapDestroyed,
     };
 

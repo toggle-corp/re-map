@@ -25,6 +25,7 @@ function MapState<T>(props: Props<T>) {
         mapStyle,
 
         sourceKey,
+        isSourceDefined,
         isMapDestroyed,
     } = useContext(SourceChildContext);
 
@@ -40,7 +41,7 @@ function MapState<T>(props: Props<T>) {
             }
 
             // eslint-disable-next-line max-len
-            // console.warn(`Setting source state: "${sourceKey}" with "${sourceLayer || 'no'}" source layer.`);
+            console.warn(`Setting source state: "${sourceKey}" with "${sourceLayer || 'no'}" source layer.`);
 
             initialAttributes.forEach((attribute) => {
                 map.setFeatureState(
@@ -54,7 +55,8 @@ function MapState<T>(props: Props<T>) {
             });
 
             return () => {
-                if (!isMapDestroyed()) {
+                if (!isMapDestroyed() && isSourceDefined(sourceKey)) {
+                    console.warn(`Removing source state: "${sourceKey}" with "${sourceLayer || 'no'}" source layer.`);
                     initialAttributes.forEach((attribute) => {
                         map.removeFeatureState(
                             {
@@ -68,7 +70,12 @@ function MapState<T>(props: Props<T>) {
                 }
             };
         },
-        [map, mapStyle, sourceKey, sourceLayer, attributeKey, initialAttributes, isMapDestroyed],
+        [
+            map, mapStyle,
+            sourceKey, sourceLayer,
+            attributeKey, initialAttributes,
+            isSourceDefined, isMapDestroyed,
+        ],
     );
 
     useEffect(

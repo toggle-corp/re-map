@@ -379,8 +379,9 @@ const Map: React.FC<Props> = (props) => {
 
     const isSourceDefined = useCallback(
         (sourceKey: string) => {
-            console.warn(Object.keys(sourcesRef.current));
-            return !!sourcesRef.current[sourceKey];
+            const currentSource = !!sourcesRef.current[sourceKey];
+            // console.warn(Object.keys(sourcesRef.current));
+            return currentSource;
         },
         [],
     );

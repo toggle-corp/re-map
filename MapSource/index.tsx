@@ -60,7 +60,7 @@ const MapSource = (props: Props) => {
                 ? { ...initialSourceOptions, data: initialGeoJson }
                 : initialSourceOptions;
 
-            console.warn(`Creating new source: ${sourceKey}`);
+            // console.warn(`Creating new source: ${sourceKey}`);
             map.addSource(sourceKey, options);
 
             const destroy = () => {
@@ -99,7 +99,7 @@ const MapSource = (props: Props) => {
             const source = map.getSource(sourceKey);
             // FIXME: avoid redundant call to this effect
             if (source.type === 'geojson') {
-                console.warn(`Setting source geojson: ${sourceKey}`);
+                // console.warn(`Setting source geojson: ${sourceKey}`);
                 source.setData(geoJson);
             }
         },
@@ -158,7 +158,7 @@ const MapSource = (props: Props) => {
             // NOTE: check if map is dis-mounted?
             if (map) {
                 const id = getLayerName(sourceKey, layerKey);
-                console.warn(`Removing layer: ${id}`);
+                // console.warn(`Removing layer: ${id}`);
                 map.removeLayer(id);
             }
 

@@ -63,13 +63,26 @@ const MapLayer = (props: Props) => {
                 return noop;
             }
             const id = getLayerName(sourceKey, layerKey);
-            console.warn(`Creating new layer: ${id}`);
+            // console.warn(`Creating new layer: ${id}`);
+
+            const newLayerOptions = {
+                ...initialLayerOptions,
+                id,
+                source: sourceKey,
+            };
+
+            const cleanNewLayerOptions = {};
+
+            Object.keys(newLayerOptions).forEach((key) => {
+                if (key && newLayerOptions[key]) {
+                    cleanNewLayerOptions[key] = newLayerOptions[key];
+                }
+            });
+
+            // console.warn(newLayerOptions);
+
             map.addLayer(
-                {
-                    ...initialLayerOptions,
-                    id,
-                    source: sourceKey,
-                },
+                cleanNewLayerOptions,
                 initialBeneath,
             );
 
@@ -166,6 +179,7 @@ const MapLayer = (props: Props) => {
             if (!map || !sourceKey || !layerKey || !filter) {
                 return;
             }
+            // console.warn('filter', filter);
             const id = getLayerName(sourceKey, layerKey);
             map.setFilter(id, filter);
         },

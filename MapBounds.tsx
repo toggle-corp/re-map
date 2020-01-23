@@ -26,6 +26,11 @@ const MapBounds = (props: Props) => {
                 return;
             }
 
+            // NOTE: just to be safe here
+            if (bounds.length < 4) {
+                return;
+            }
+
             const [fooLon, fooLat, barLon, barLat] = bounds;
             map.fitBounds(
                 [[fooLon, fooLat], [barLon, barLat]],

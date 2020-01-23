@@ -163,7 +163,7 @@ const MapLayer = (props: Props) => {
     // TODO: don't call in first render
     useEffect(
         () => {
-            if (!map || !sourceKey || !layerKey || !filter) {
+            if (!map || !sourceKey || !layerKey) {
                 return;
             }
             const id = getLayerName(sourceKey, layerKey);

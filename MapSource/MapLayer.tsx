@@ -64,12 +64,22 @@ const MapLayer = (props: Props) => {
             }
             const id = getLayerName(sourceKey, layerKey);
             console.warn(`Creating new layer: ${id}`);
+            const newLayerOptions = {
+                ...initialLayerOptions,
+                id,
+                source: sourceKey,
+            };
+
+            const cleanNewLayerOptions = {};
+
+            Object.keys(newLayerOptions).forEach((key) => {
+                if (key && newLayerOptions[key]) {
+                    cleanNewLayerOptions[key] = newLayerOptions[key];
+                }
+            });
+
             map.addLayer(
-                {
-                    ...initialLayerOptions,
-                    id,
-                    source: sourceKey,
-                },
+                cleanNewLayerOptions,
                 initialBeneath,
             );
 
@@ -128,6 +138,7 @@ const MapLayer = (props: Props) => {
         filter,
         layout,
     } = layerOptions;
+
 
     // Handle paint change
     // TODO: don't call in first render

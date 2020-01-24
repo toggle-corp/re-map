@@ -49,7 +49,11 @@ const removeResizeHandler = (ref: React.RefObject<HTMLDivElement>) => {
     delete resizeHandlers[key];
 };
 
-const useDimension = (targetRef: React.RefObject<HTMLDivElement> | undefined) => {
+const useDimension = (
+    targetRef: React.RefObject<HTMLDivElement> | undefined,
+    debounceDuration = 200,
+) => {
+    const timeoutRef = useRef<number | undefined>();
     const [rect, setRect] = useState<ClientRect | undefined>(undefined);
 
     useEffect(
@@ -63,23 +67,31 @@ const useDimension = (targetRef: React.RefObject<HTMLDivElement> | undefined) =>
             addResizeHandler(
                 targetRef,
                 (r: ClientRect) => {
-                    const different = (
-                        !rect
-                        // || r.x !== rect.x
-                        // || r.y !== rect.y
-                        || r.width !== rect.width
-                        || r.height !== rect.height
-                        || r.top !== rect.top
-                        || r.right !== rect.right
-                        || r.bottom !== rect.bottom
-                        || r.left !== rect.left
+                    window.clearTimeout(timeoutRef.current);
+
+                    timeoutRef.current = window.setTimeout(
+                        () => {
+                            const different = (
+                                !rect
+                                // || r.x !== rect.x
+                                // || r.y !== rect.y
+                                || r.width !== rect.width
+                                || r.height !== rect.height
+                                || r.top !== rect.top
+                                || r.right !== rect.right
+                                || r.bottom !== rect.bottom
+                                || r.left !== rect.left
+                            );
+                            if (different) {
+                                setRect(r);
+                            }
+                        },
+                        debounceDuration,
                     );
-                    if (different) {
-                        setRect(r);
-                    }
                 },
             );
             return () => {
+                window.clearTimeout(timeoutRef.current);
                 removeResizeHandler(targetRef);
             };
         },

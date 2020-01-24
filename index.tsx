@@ -60,6 +60,8 @@ interface Props {
     navControlShown: boolean;
     navControlPosition?: Position;
     navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
+
+    debug: boolean;
 }
 
 const Map: React.FC<Props> = (props) => {
@@ -76,16 +78,37 @@ const Map: React.FC<Props> = (props) => {
         navControlPosition,
 
         children,
+
+        debug,
     } = props;
+
+    const [initialDebug] = useState(debug);
 
     const [mapStyle, setMapStyle] = useState<mapboxgl.MapboxOptions['style']>(undefined);
     const [loaded, setLoaded] = useState<boolean>(false);
+
+    const boundsRef = useRef<[number, number, number, number] | undefined>();
+    const paddingRef = useRef<number | undefined>();
+    const durationRef = useRef<number | undefined>();
 
     const lastIn = useRef<LastIn | undefined>(undefined);
     const mapDestroyedRef = useRef(false);
     const sourcesRef = useRef<Sources>({});
     const mapRef = useRef<mapboxgl.Map | undefined>(undefined);
     const mapContainerRef = useRef<HTMLDivElement>(null);
+
+    const setBounds = useCallback(
+        (
+            bounds: [number, number, number, number] | undefined,
+            padding: number | undefined,
+            duration: number | undefined,
+        ) => {
+            boundsRef.current = bounds;
+            paddingRef.current = padding;
+            durationRef.current = duration;
+        },
+        [],
+    );
 
     // Create map
     useEffect(
@@ -108,7 +131,7 @@ const Map: React.FC<Props> = (props) => {
             });
 
             mapRef.current = mapboxglMap;
-            // FIXME: we souldn't always set cursor to pointer
+            // FIXME: we shouldn't always set cursor to pointer
             // mapboxglMap.getCanvas().style.cursor = 'pointer';
 
             if (scaleControlShown) {
@@ -125,10 +148,12 @@ const Map: React.FC<Props> = (props) => {
                 );
             }
 
+            /*
             // TODO: need to resize map in some cases
             const timer = setTimeout(() => {
                 mapboxglMap.resize();
             }, 200);
+            */
 
             const handleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
                 if (!mapRef.current) {
@@ -313,28 +338,54 @@ const Map: React.FC<Props> = (props) => {
                 }
             };
 
+            const handleResize = () => {
+                if (!mapRef.current) {
+                    return;
+                }
+                if (!boundsRef.current) {
+                    return;
+                }
+                // NOTE: just to be safe here
+                if (boundsRef.current.length < 4) {
+                    return;
+                }
+
+                const [fooLon, fooLat, barLon, barLat] = boundsRef.current;
+                mapRef.current.fitBounds(
+                    [[fooLon, fooLat], [barLon, barLat]],
+                    {
+                        padding: paddingRef.current,
+                        duration: durationRef.current,
+                    },
+                );
+            };
+
             mapboxglMap.on('click', handleClick);
             mapboxglMap.on('dblclick', handleDoubleClick);
             mapboxglMap.on('mousemove', handleMouseMove);
+            mapboxglMap.on('resize', handleResize);
 
             const destroy = () => {
-                clearTimeout(timer);
+                // clearTimeout(timer);
 
                 mapboxglMap.off('click', handleClick);
                 mapboxglMap.off('dblclick', handleDoubleClick);
                 mapboxglMap.off('mousemove', handleMouseMove);
+                mapboxglMap.off('resize', handleResize);
 
                 sourcesRef.current = {};
                 lastIn.current = undefined;
                 mapDestroyedRef.current = true;
 
-                console.warn('Removing map');
+                if (initialDebug) {
+                    console.warn('Removing map');
+                }
                 mapboxglMap.remove();
             };
 
             return destroy;
         },
-        [],
+        [initialDebug],
     );
 
     // Handle style load and map ready
@@ -346,11 +397,15 @@ const Map: React.FC<Props> = (props) => {
             sourcesRef.current = {};
             lastIn.current = undefined;
 
-            console.warn(`Setting map style ${mapStyleFromProps}`);
+            if (initialDebug) {
+                console.warn(`Setting map style ${mapStyleFromProps}`);
+            }
             mapRef.current.setStyle(mapStyleFromProps);
 
             const onStyleData = () => {
-                console.info('Passing mapStyle:', mapStyleFromProps);
+                if (initialDebug) {
+                    console.info('Passing mapStyle:', mapStyleFromProps);
+                }
                 setMapStyle(mapStyleFromProps);
             };
             mapRef.current.once('styledata', onStyleData);
@@ -368,7 +423,7 @@ const Map: React.FC<Props> = (props) => {
                 }
             };
         },
-        [mapStyleFromProps],
+        [mapStyleFromProps, initialDebug],
     );
 
 
@@ -405,7 +460,6 @@ const Map: React.FC<Props> = (props) => {
     const removeSource = useCallback(
         (sourceKey: string) => {
             if (!sourcesRef.current[sourceKey]) {
-                // console.error(`No source named: ${sourceKey}`);
                 return;
             }
 
@@ -415,12 +469,13 @@ const Map: React.FC<Props> = (props) => {
             });
 
             if (mapRef.current) {
-                // console.warn(Object.keys(mapRef.current.style.sourceCaches));
-                console.warn(`Removing source: ${sourceKey}`);
+                if (initialDebug) {
+                    console.warn(`Removing source: ${sourceKey}`);
+                }
                 mapRef.current.removeSource(sourceKey);
             }
         },
-        [],
+        [initialDebug],
     );
 
     const mapChildren = children as React.ReactElement<unknown>;
@@ -439,6 +494,9 @@ const Map: React.FC<Props> = (props) => {
         removeSource,
 
         isMapDestroyed,
+
+        setBounds,
+        debug: initialDebug,
     };
 
     return (
@@ -454,6 +512,8 @@ Map.defaultProps = {
 
     navControlShown: false,
     navControlPosition: 'top-right',
+
+    debug: false,
 };
 
 export default Map;

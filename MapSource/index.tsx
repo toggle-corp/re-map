@@ -43,8 +43,10 @@ const MapSource = (props: Props) => {
         removeSource,
         isSourceDefined,
         isMapDestroyed,
+        debug,
     } = useContext(MapChildContext);
 
+    const [initialDebug] = useState(debug);
     const [forceUpdate] = useCounter(0);
     const [initialGeoJson] = useState(geoJson);
     const [initialSourceOptions] = useState(sourceOptions);
@@ -60,7 +62,9 @@ const MapSource = (props: Props) => {
                 ? { ...initialSourceOptions, data: initialGeoJson }
                 : initialSourceOptions;
 
-            console.warn(`Creating new source: ${sourceKey}`);
+            if (initialDebug) {
+                console.warn(`Creating new source: ${sourceKey}`);
+            }
             map.addSource(sourceKey, options);
 
             const destroy = () => {
@@ -85,7 +89,7 @@ const MapSource = (props: Props) => {
             map, mapStyle, sourceKey,
             forceUpdate,
             getSource, removeSource, setSource,
-            initialGeoJson, initialSourceOptions,
+            initialGeoJson, initialSourceOptions, initialDebug,
         ],
     );
 
@@ -99,11 +103,13 @@ const MapSource = (props: Props) => {
             const source = map.getSource(sourceKey);
             // FIXME: avoid redundant call to this effect
             if (source.type === 'geojson') {
-                console.warn(`Setting source geojson: ${sourceKey}`);
+                if (initialDebug) {
+                    console.warn(`Setting source geojson: ${sourceKey}`);
+                }
                 source.setData(geoJson);
             }
         },
-        [map, mapStyle, sourceKey, geoJson],
+        [map, mapStyle, sourceKey, geoJson, initialDebug],
     );
 
     const getLayer = useCallback(
@@ -158,7 +164,9 @@ const MapSource = (props: Props) => {
             // NOTE: check if map is dis-mounted?
             if (map) {
                 const id = getLayerName(sourceKey, layerKey);
-                console.warn(`Removing layer: ${id}`);
+                if (initialDebug) {
+                    console.warn(`Removing layer: ${id}`);
+                }
                 map.removeLayer(id);
             }
 
@@ -170,7 +178,7 @@ const MapSource = (props: Props) => {
 
             setSource(newSource);
         },
-        [map, sourceKey, getSource, setSource],
+        [map, sourceKey, getSource, setSource, initialDebug],
     );
 
     if (!isSourceDefined(sourceKey)) {
@@ -186,6 +194,7 @@ const MapSource = (props: Props) => {
         removeLayer,
         isSourceDefined,
         isMapDestroyed,
+        debug: initialDebug,
     };
 
     return (

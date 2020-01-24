@@ -12,6 +12,14 @@ interface MapChildState {
     removeSource: (sourceKey: string) => void;
     isSourceDefined: (sourceKey: string) => boolean;
     isMapDestroyed: () => boolean;
+
+    setBounds: (
+        bounds: [number, number, number, number] | undefined,
+        padding: number | undefined,
+        duration: number | undefined,
+    ) => void;
+
+    debug: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -27,6 +35,9 @@ const initialMapChildState: MapChildState = {
     removeSource: noop,
     isSourceDefined: () => false,
     isMapDestroyed: () => false,
+
+    setBounds: noop,
+    debug: false,
 };
 
 export const MapChildContext = React.createContext(initialMapChildState);
@@ -42,6 +53,7 @@ interface SourceChildState {
     setLayer: (layerKey: string, method: (layer: Layer | undefined) => Layer | undefined) => void;
     getLayer: (layerKey: string) => Layer | undefined;
     removeLayer: (layerKey: string) => void;
+    debug: boolean;
 }
 
 const initialSourceChildState: SourceChildState = {
@@ -54,6 +66,7 @@ const initialSourceChildState: SourceChildState = {
     setLayer: noop,
     getLayer: () => undefined,
     removeLayer: noop,
+    debug: false,
 };
 
 export const SourceChildContext = React.createContext(initialSourceChildState);

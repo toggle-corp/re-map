@@ -42,9 +42,6 @@ const MapLayer = (props: Props) => {
         beneath,
     } = props;
 
-    const [initialLayerOptions] = useState(layerOptions);
-    const [initialBeneath] = useState(beneath);
-
     const {
         map,
         mapStyle,
@@ -54,7 +51,12 @@ const MapLayer = (props: Props) => {
         setLayer,
         removeLayer,
         getLayer,
+        debug,
     } = useContext(SourceChildContext);
+
+    const [initialLayerOptions] = useState(layerOptions);
+    const [initialBeneath] = useState(beneath);
+    const [initialDebug] = useState(debug);
 
     // Add layer in mapboxgl
     useEffect(
@@ -63,7 +65,9 @@ const MapLayer = (props: Props) => {
                 return noop;
             }
             const id = getLayerName(sourceKey, layerKey);
-            console.warn(`Creating new layer: ${id}`);
+            if (initialDebug) {
+                console.warn(`Creating new layer: ${id}`);
+            }
             map.addLayer(
                 {
                     ...initialLayerOptions,
@@ -94,7 +98,7 @@ const MapLayer = (props: Props) => {
         },
         [
             map, mapStyle, sourceKey, layerKey,
-            initialLayerOptions, initialBeneath,
+            initialLayerOptions, initialBeneath, initialDebug,
             getLayer, removeLayer, setLayer,
         ],
     );

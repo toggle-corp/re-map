@@ -63,9 +63,13 @@ const MapSource = (props: Props) => {
                 : initialSourceOptions;
 
             if (initialDebug) {
-                console.warn(`Creating new source: ${sourceKey}`);
+                console.warn(`Creating new source: ${sourceKey}`, options);
             }
-            map.addSource(sourceKey, options);
+            try {
+                map.addSource(sourceKey, options);
+            } catch (e) {
+                console.error(e);
+            }
 
             const destroy = () => {
                 const source = getSource(sourceKey);

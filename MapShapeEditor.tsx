@@ -25,6 +25,15 @@ interface Props {
     onModeChange?: (mode: Mode) => void;
 }
 
+const defaultDrawOptions = ({
+    displayControlsDefault: false,
+    controls: {
+        point: true,
+        polygon: true,
+        trash: true,
+    },
+});
+
 const MapShapeEditor = (props: Props) => {
     const {
         onCreate,
@@ -32,6 +41,7 @@ const MapShapeEditor = (props: Props) => {
         onUpdate,
         onModeChange,
         geoJsons,
+        drawOptions = defaultDrawOptions,
     } = props;
     const {
         map,
@@ -48,14 +58,7 @@ const MapShapeEditor = (props: Props) => {
                 return noop;
             }
 
-            const draw = new MapboxDraw({
-                displayControlsDefault: false,
-                controls: {
-                    point: true,
-                    polygon: true,
-                    trash: true,
-                },
-            });
+            const draw = new MapboxDraw(drawOptions);
 
             map.addControl(
                 draw,

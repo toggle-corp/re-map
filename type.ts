@@ -32,3 +32,8 @@ interface Obj<T> {
 }
 
 export type Sources = Obj<Source>;
+
+export interface Draw {
+    getMode: () => string;
+    delete: (idList: string | string[]) => void;
+}

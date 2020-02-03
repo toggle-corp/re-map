@@ -1,5 +1,7 @@
-import { useContext, useEffect, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
+import { useContext, useEffect, useState, useRef } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw';
+import { Draw } from './type';
 
 import { MapChildContext } from './context';
 
@@ -16,12 +18,13 @@ interface ModeChangeEvent {
     mode: Mode;
 }
 
+
 interface Props {
     geoJsons: mapboxgl.MapboxGeoJSONFeature[];
 
-    onCreate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[]) => void;
-    onDelete?: (geojsons: mapboxgl.MapboxGeoJSONFeature[]) => void;
-    onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[]) => void;
+    onCreate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw | undefined) => void;
+    onDelete?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw | undefined) => void;
+    onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw | undefined) => void;
     onModeChange?: (mode: Mode) => void;
 }
 
@@ -50,6 +53,7 @@ const MapShapeEditor = (props: Props) => {
     } = useContext(MapChildContext);
 
     const [initialGeoJsons] = useState(geoJsons);
+    const drawRef = useRef<Draw | undefined>();
 
     // Create and destroy control
     useEffect(
@@ -69,6 +73,8 @@ const MapShapeEditor = (props: Props) => {
                 draw.add(geoJson);
             });
 
+            drawRef.current = draw as Draw;
+
             return () => {
                 if (!isMapDestroyed()) {
                     map.removeControl(draw);
@@ -87,7 +93,7 @@ const MapShapeEditor = (props: Props) => {
 
             const handleCreate = (e: EditEvent) => {
                 if (onCreate) {
-                    onCreate(e.features);
+                    onCreate(e.features, drawRef.current);
                 }
             };
 
@@ -110,7 +116,7 @@ const MapShapeEditor = (props: Props) => {
 
             const handleUpdate = (e: EditEvent) => {
                 if (onUpdate) {
-                    onUpdate(e.features);
+                    onUpdate(e.features, drawRef.current);
                 }
             };
 
@@ -133,7 +139,7 @@ const MapShapeEditor = (props: Props) => {
 
             const handleDelete = (e: EditEvent) => {
                 if (onDelete) {
-                    onDelete(e.features);
+                    onDelete(e.features, drawRef.current);
                 }
             };
 
@@ -156,7 +162,7 @@ const MapShapeEditor = (props: Props) => {
 
             const handleModeChange = (e: ModeChangeEvent) => {
                 if (onModeChange) {
-                    onModeChange(e.mode);
+                    onModeChange(e.mode, drawRef.current);
                 }
             };
 

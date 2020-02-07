@@ -66,6 +66,7 @@ const MapShapeEditor = (props: Props) => {
 
             map.addControl(
                 draw,
+                'top-left',
             );
 
             // Load geojsons

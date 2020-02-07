@@ -62,7 +62,7 @@ interface Props {
     navControlPosition?: Position;
     navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
 
-    debug: boolean;
+    debug?: boolean;
 }
 
 const Map: React.FC<Props> = (props) => {

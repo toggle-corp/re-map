@@ -5,9 +5,13 @@ import { MapChildContext } from './context';
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
-interface Props {
+type Props = {
     name: string;
     url: string;
+    imageOptions?: { pixelRatio?: number; sdf?: boolean };
+} | {
+    name: string;
+    image: Img;
     imageOptions?: { pixelRatio?: number; sdf?: boolean };
 }
 
@@ -21,6 +25,7 @@ const MapImage = (props: Props) => {
     const {
         name,
         url,
+        image,
         imageOptions,
     } = props;
 
@@ -37,10 +42,10 @@ const MapImage = (props: Props) => {
 
             if (map.hasImage(initialName)) {
                 console.error(`An image with name '${initialName}' already exists`);
-            } else {
+            } else if (initialUrl) {
                 map.loadImage(
                     initialUrl,
-                    (error: unknown, image: Img) => {
+                    (error: unknown, loadedImage: Img) => {
                         if (isMapDestroyed()) {
                             return;
                         }
@@ -48,9 +53,11 @@ const MapImage = (props: Props) => {
                             console.error(error);
                             return;
                         }
-                        map.addImage(initialName, image, initialImageOptions);
+                        map.addImage(initialName, loadedImage, initialImageOptions);
                     },
                 );
+            } else if (image) {
+                map.addImage(initialName, image, initialImageOptions);
             }
 
             return () => {
@@ -59,7 +66,7 @@ const MapImage = (props: Props) => {
                 }
             };
         },
-        [map, initialName, initialUrl, initialImageOptions, isMapDestroyed],
+        [map, initialName, image, initialUrl, initialImageOptions, isMapDestroyed],
     );
 
     return null;

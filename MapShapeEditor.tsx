@@ -45,6 +45,7 @@ const MapShapeEditor = (props: Props) => {
         onModeChange,
         geoJsons,
         drawOptions = defaultDrawOptions,
+        drawPosition = 'bottom-right',
     } = props;
     const {
         map,
@@ -66,7 +67,7 @@ const MapShapeEditor = (props: Props) => {
 
             map.addControl(
                 draw,
-                'top-left',
+                drawPosition,
             );
 
             // Load geojsons

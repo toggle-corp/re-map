@@ -20,7 +20,7 @@ type Paint = mapboxgl.BackgroundPaint
 
 interface Props {
     layerKey: string;
-    layerOptions: mapboxgl.Layer;
+    layerOptions: Omit<mapboxgl.Layer, 'id'>;
     onClick?: (
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,

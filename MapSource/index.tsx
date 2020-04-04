@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, { useContext, useEffect, useState, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
+import { Obj } from '@togglecorp/fujs';
 
 import { getLayerName } from '../utils';
 import { MapChildContext, SourceChildContext } from '../context';
@@ -25,14 +26,16 @@ interface Props {
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
+    createMarkerElement?: (properties: object) => HTMLElement;
 }
 
 const MapSource = (props: Props) => {
     const {
         sourceOptions,
         sourceKey,
-        geoJson,
         children,
+        geoJson,
+        createMarkerElement,
     } = props;
 
     const {
@@ -114,6 +117,102 @@ const MapSource = (props: Props) => {
             }
         },
         [map, mapStyle, sourceKey, geoJson, initialDebug],
+    );
+
+    const markers = useRef<Obj<mapboxgl.Marker>>({});
+    const markersOnScreen = useRef<Obj<mapboxgl.Marker>>({});
+
+    const updateMarkers = useCallback(
+        () => {
+            if (!map || !createMarkerElement || !sourceKey) {
+                return;
+            }
+            const newMarkers: Obj<mapboxgl.Marker> = {};
+            const features = map.querySourceFeatures(sourceKey);
+
+            features.forEach((feature) => {
+                if (feature.geometry.type !== 'Point') {
+                    return;
+                }
+                const {
+                    geometry: {
+                        coordinates,
+                    },
+                    properties,
+                } = feature;
+                if (!properties || !properties.cluster) {
+                    return;
+                }
+                const { cluster_id: clusterId } = properties;
+
+
+                let marker = markers.current[clusterId];
+                if (!marker) {
+                    const el = createMarkerElement(properties);
+                    marker = new mapboxgl.Marker({
+                        element: el,
+                    }).setLngLat(coordinates as mapboxgl.LngLatLike);
+
+                    markers.current[clusterId] = marker;
+                }
+                newMarkers[clusterId] = marker;
+
+                if (!markersOnScreen.current[clusterId]) {
+                    marker.addTo(map);
+                }
+            });
+
+            Object.keys(markersOnScreen.current).forEach((markerId) => {
+                if (!newMarkers[markerId]) {
+                    markersOnScreen.current[markerId].remove();
+                }
+            });
+
+            markersOnScreen.current = newMarkers;
+        },
+        [map, createMarkerElement, sourceKey],
+    );
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !mapStyle || !geoJson || !createMarkerElement) {
+                return noop;
+            }
+
+            /*
+            const handleData = (e: mapboxgl.EventData) => {
+                if (e.sourceId !== sourceKey || !e.isSourceLoaded) {
+                    return;
+                }
+                updateMarkers();
+            };
+            map.on('data', handleData);
+            */
+            map.on('move', updateMarkers);
+            map.on('moveend', updateMarkers);
+
+            return () => {
+                // map.off('data', handleData);
+                map.on('move', updateMarkers);
+                map.on('moveend', updateMarkers);
+            };
+        },
+        [map, sourceKey, mapStyle, createMarkerElement, updateMarkers, geoJson],
+    );
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !mapStyle || !geoJson || !createMarkerElement) {
+                return noop;
+            }
+
+            const interval = setInterval(updateMarkers, 1000);
+
+            return () => {
+                clearInterval(interval);
+            };
+        },
+        [map, sourceKey, mapStyle, createMarkerElement, updateMarkers, geoJson],
     );
 
     const getLayer = useCallback(

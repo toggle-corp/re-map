@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
-import 'mapbox-gl/dist/mapbox-gl.css';
+// import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { getLayerName } from './utils';
 import { Layer, Sources, Source } from './type';
@@ -242,8 +242,6 @@ const Map: React.FC<Props> = (props) => {
                     lngLat,
                 } = data;
 
-                /*
-                // FIXME: this interferes with the mapboxgl draw plugin
                 const interactiveLayerKeys = layers
                     .filter(layer => !!layer.onClick || !!layer.onDoubleClick)
                     .map(layer => layer.layerKey);
@@ -256,7 +254,6 @@ const Map: React.FC<Props> = (props) => {
                 } else {
                     mapboxglMap.getCanvas().style.cursor = 'pointer';
                 }
-                */
 
                 const hoverableLayerKeys = layers
                     .filter(layer => !!layer.onMouseEnter || !!layer.onMouseLeave)

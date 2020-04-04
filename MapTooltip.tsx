@@ -10,7 +10,7 @@ const noop = () => {};
 // TODO: add mapStyle if necessary
 interface Props {
     children: React.ReactElement;
-    coordinates: [number, number];
+    coordinates: mapboxgl.LngLatLike;
     hidden: boolean;
     onHide?: () => void;
     tooltipOptions?: mapboxgl.PopupOptions;

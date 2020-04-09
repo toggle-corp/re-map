@@ -3,7 +3,9 @@ import { _cs } from '@togglecorp/fujs';
 
 import { MapChildContext } from '../context';
 import useDimension from '../useDimension';
-import styles from './styles.scss';
+
+import styles from './styles.css';
+// import styles from './styles.scss';
 
 interface Props {
     className?: string;

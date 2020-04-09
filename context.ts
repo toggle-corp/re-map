@@ -19,7 +19,7 @@ interface MapChildState {
         duration: number | undefined,
     ) => void;
 
-    debug: boolean;
+    debug?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -53,7 +53,7 @@ interface SourceChildState {
     setLayer: (layerKey: string, method: (layer: Layer | undefined) => Layer | undefined) => void;
     getLayer: (layerKey: string) => Layer | undefined;
     removeLayer: (layerKey: string) => void;
-    debug: boolean;
+    debug?: boolean;
 }
 
 const initialSourceChildState: SourceChildState = {

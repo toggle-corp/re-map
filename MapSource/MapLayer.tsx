@@ -25,19 +25,22 @@ interface Props {
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
+        map: mapboxgl.Map,
     ) => boolean | undefined;
     onDoubleClick?: (
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
+        map: mapboxgl.Map,
     ) => boolean | undefined;
     // Only called for topmost layer
     onMouseEnter?: (
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
+        map: mapboxgl.Map,
     ) => void;
-    onMouseLeave?: () => void;
+    onMouseLeave?: (map: mapboxgl.Map) => void;
     beneath?: string;
     onAnimationFrame?: (timestamp: number) => Paint | undefined;
 }

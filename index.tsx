@@ -157,7 +157,8 @@ const Map: React.FC<Props> = (props) => {
             */
 
             const handleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
-                if (!mapRef.current) {
+                const { current: map } = mapRef;
+                if (!map) {
                     return;
                 }
 
@@ -172,7 +173,7 @@ const Map: React.FC<Props> = (props) => {
                     .filter(layer => !!layer.onClick)
                     .map(layer => layer.layerKey);
 
-                const clickableFeatures = mapRef.current.queryRenderedFeatures(
+                const clickableFeatures = map.queryRenderedFeatures(
                     point,
                     { layers: clickableLayerKeys },
                 );
@@ -187,14 +188,15 @@ const Map: React.FC<Props> = (props) => {
 
                     const layer = findLayerFromLayers(layers, id);
                     if (layer && layer.onClick) {
-                        return !layer.onClick(clickableFeature, lngLat, point);
+                        return !layer.onClick(clickableFeature, lngLat, point, map);
                     }
                     return false;
                 });
             };
 
             const handleDoubleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
-                if (!mapRef.current) {
+                const { current: map } = mapRef;
+                if (!map) {
                     return;
                 }
 
@@ -209,7 +211,7 @@ const Map: React.FC<Props> = (props) => {
                     .filter(layer => !!layer.onDoubleClick)
                     .map(layer => layer.layerKey);
 
-                const clickableFeatures = mapRef.current.queryRenderedFeatures(
+                const clickableFeatures = map.queryRenderedFeatures(
                     point,
                     { layers: clickableLayerKeys },
                 );
@@ -224,14 +226,15 @@ const Map: React.FC<Props> = (props) => {
 
                     const layer = findLayerFromLayers(layers, id);
                     if (layer && layer.onDoubleClick) {
-                        return !layer.onDoubleClick(clickableFeature, lngLat, point);
+                        return !layer.onDoubleClick(clickableFeature, lngLat, point, map);
                     }
                     return false;
                 });
             };
 
             const handleMouseMove = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
-                if (!mapRef.current) {
+                const { current: map } = mapRef;
+                if (!map) {
                     return;
                 }
 
@@ -245,7 +248,7 @@ const Map: React.FC<Props> = (props) => {
                 const interactiveLayerKeys = layers
                     .filter(layer => !!layer.onClick || !!layer.onDoubleClick)
                     .map(layer => layer.layerKey);
-                const interactiveFeatures = mapRef.current.queryRenderedFeatures(
+                const interactiveFeatures = map.queryRenderedFeatures(
                     point,
                     { layers: interactiveLayerKeys },
                 );
@@ -259,7 +262,7 @@ const Map: React.FC<Props> = (props) => {
                     .filter(layer => !!layer.onMouseEnter || !!layer.onMouseLeave)
                     .map(layer => layer.layerKey);
 
-                const hoverableFeatures = mapRef.current.queryRenderedFeatures(
+                const hoverableFeatures = map.queryRenderedFeatures(
                     point,
                     { layers: hoverableLayerKeys },
                 );
@@ -276,7 +279,7 @@ const Map: React.FC<Props> = (props) => {
                         );
                         const layer = findLayerFromLayers(layers, lastIn.current.layerName);
                         if (layer && layer.onMouseLeave) {
-                            layer.onMouseLeave();
+                            layer.onMouseLeave(map);
                         }
                     }
                     lastIn.current = undefined;
@@ -308,7 +311,7 @@ const Map: React.FC<Props> = (props) => {
                     )) {
                         const layer = findLayerFromLayers(layers, lastIn.current.layerName);
                         if (layer && layer.onMouseLeave) {
-                            layer.onMouseLeave();
+                            layer.onMouseLeave(map);
                         }
                     }
 
@@ -331,13 +334,18 @@ const Map: React.FC<Props> = (props) => {
                     const { layer: { id } } = firstFeature;
                     const layer = findLayerFromLayers(layers, id);
                     if (layer && layer.onMouseEnter) {
-                        layer.onMouseEnter(firstFeature, lngLat, point);
+                        layer.onMouseEnter(firstFeature, lngLat, point, map);
                     }
                 }
             };
 
             const handleResize = () => {
-                if (!mapRef.current) {
+                const { current: map } = mapRef;
+                if (!map) {
+                    return;
+                }
+
+                if (!map) {
                     return;
                 }
                 if (!boundsRef.current) {
@@ -349,7 +357,7 @@ const Map: React.FC<Props> = (props) => {
                 }
 
                 const [fooLon, fooLat, barLon, barLat] = boundsRef.current;
-                mapRef.current.fitBounds(
+                map.fitBounds(
                     [[fooLon, fooLat], [barLon, barLat]],
                     {
                         padding: paddingRef.current,
@@ -389,7 +397,8 @@ const Map: React.FC<Props> = (props) => {
     // Handle style load and map ready
     useEffect(
         () => {
-            if (UNSUPPORTED_BROWSER || !mapRef.current || !mapStyleFromProps) {
+            const { current: map } = mapRef;
+            if (UNSUPPORTED_BROWSER || !map || !mapStyleFromProps) {
                 return noop;
             }
             sourcesRef.current = {};
@@ -398,7 +407,7 @@ const Map: React.FC<Props> = (props) => {
             if (initialDebug) {
                 console.warn(`Setting map style ${mapStyleFromProps}`);
             }
-            mapRef.current.setStyle(mapStyleFromProps);
+            map.setStyle(mapStyleFromProps);
 
             const onStyleData = () => {
                 if (initialDebug) {
@@ -406,12 +415,12 @@ const Map: React.FC<Props> = (props) => {
                 }
                 setMapStyle(mapStyleFromProps);
             };
-            mapRef.current.once('styledata', onStyleData);
+            map.once('styledata', onStyleData);
 
             const onLoad = () => {
                 setLoaded(true);
             };
-            mapRef.current.once('load', onLoad);
+            map.once('load', onLoad);
 
             return () => {
                 if (mapRef.current) {
@@ -466,11 +475,12 @@ const Map: React.FC<Props> = (props) => {
                 delete safeSource[sourceKey];
             });
 
-            if (mapRef.current) {
+            const { current: map } = mapRef;
+            if (map) {
                 if (initialDebug) {
                     console.warn(`Removing source: ${sourceKey}`);
                 }
-                mapRef.current.removeSource(sourceKey);
+                map.removeSource(sourceKey);
             }
         },
         [initialDebug],

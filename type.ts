@@ -5,11 +5,13 @@ export interface Layer {
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
+        map: mapboxgl.Map,
     ) => boolean | undefined;
     onDoubleClick?: (
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
+        map: mapboxgl.Map,
     ) => boolean | undefined;
 
     // Only called for topmost layer
@@ -17,8 +19,9 @@ export interface Layer {
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
+        map: mapboxgl.Map,
     ) => void;
-    onMouseLeave?: () => void;
+    onMouseLeave?: (map: mapboxgl.Map) => void;
 }
 
 export interface Source {

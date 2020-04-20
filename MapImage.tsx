@@ -9,10 +9,12 @@ type Props = {
     name: string;
     url: string;
     imageOptions?: { pixelRatio?: number; sdf?: boolean };
+    onLoad?: (loaded: boolean) => void;
 } | {
     name: string;
     image: Img;
     imageOptions?: { pixelRatio?: number; sdf?: boolean };
+    onLoad?: (loaded: boolean) => void;
 }
 
 type Img = HTMLImageElement
@@ -21,28 +23,33 @@ type Img = HTMLImageElement
 | ImageData;
 
 const MapImage = (props: Props) => {
-    const { map, isMapDestroyed } = useContext(MapChildContext);
+    const { map, isMapDestroyed, mapStyle } = useContext(MapChildContext);
     const {
         name,
         url,
         image,
         imageOptions,
+        onLoad,
     } = props;
 
     const [initialName] = useState(name);
     const [initialUrl] = useState(url);
+    const [initialImage] = useState(image);
     const [initialImageOptions] = useState(imageOptions);
 
     // Handle change in bounds
     useEffect(
         () => {
-            if (!map) {
+            if (!map || !mapStyle) {
                 return noop;
             }
 
             if (map.hasImage(initialName)) {
-                console.error(`An image with name '${initialName}' already exists`);
+                console.warn(`An image with name '${initialName}' already exists`);
             } else if (initialUrl) {
+                if (onLoad) {
+                    onLoad(false);
+                }
                 map.loadImage(
                     initialUrl,
                     (error: unknown, loadedImage: Img) => {
@@ -54,19 +61,32 @@ const MapImage = (props: Props) => {
                             return;
                         }
                         map.addImage(initialName, loadedImage, initialImageOptions);
+                        if (onLoad) {
+                            onLoad(true);
+                        }
                     },
                 );
-            } else if (image) {
-                map.addImage(initialName, image, initialImageOptions);
+            } else if (initialImage) {
+                map.addImage(initialName, initialImage, initialImageOptions);
+                if (onLoad) {
+                    onLoad(true);
+                }
             }
 
             return () => {
                 if (!isMapDestroyed() && map.hasImage(initialName)) {
                     map.removeImage(initialName);
+                    if (onLoad) {
+                        onLoad(false);
+                    }
                 }
             };
         },
-        [map, initialName, image, initialUrl, initialImageOptions, isMapDestroyed],
+        [
+            map, mapStyle, isMapDestroyed,
+            initialName, initialImage, initialUrl, initialImageOptions,
+            onLoad,
+        ],
     );
 
     return null;

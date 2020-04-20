@@ -407,8 +407,8 @@ const Map: React.FC<Props> = (props) => {
             if (initialDebug) {
                 console.warn(`Setting map style ${mapStyleFromProps}`);
             }
-            map.setStyle(mapStyleFromProps);
 
+            map.setStyle(mapStyleFromProps);
             const onStyleData = () => {
                 if (initialDebug) {
                     console.info('Passing mapStyle:', mapStyleFromProps);
@@ -417,6 +417,8 @@ const Map: React.FC<Props> = (props) => {
             };
             map.once('styledata', onStyleData);
 
+            // FIXME: This will only be called once, should be moved when
+            // map object is created
             const onLoad = () => {
                 setLoaded(true);
             };

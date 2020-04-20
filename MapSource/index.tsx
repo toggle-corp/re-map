@@ -101,14 +101,12 @@ const MapSource = (props: Props) => {
     );
 
     // Handle geoJson change
-    // TODO: don't call in first render
     useEffect(
         () => {
-            if (!map || !sourceKey || !geoJson || !mapStyle) {
+            if (!map || !sourceKey || !geoJson || !mapStyle || geoJson === initialGeoJson) {
                 return;
             }
             const source = map.getSource(sourceKey);
-            // FIXME: avoid redundant call to this effect
             if (source.type === 'geojson') {
                 if (initialDebug) {
                     console.warn(`Setting source geojson: ${sourceKey}`);
@@ -116,7 +114,7 @@ const MapSource = (props: Props) => {
                 source.setData(geoJson);
             }
         },
-        [map, mapStyle, sourceKey, geoJson, initialDebug],
+        [map, mapStyle, sourceKey, geoJson, initialGeoJson, initialDebug],
     );
 
     const markers = useRef<Obj<mapboxgl.Marker>>({});

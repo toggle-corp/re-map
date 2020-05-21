@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, { useContext, useEffect, useState, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
+import { Obj } from '@togglecorp/fujs';
 
 import { getLayerName } from '../utils';
 import { MapChildContext, SourceChildContext } from '../context';
@@ -25,14 +26,16 @@ interface Props {
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
+    createMarkerElement?: (properties: object) => HTMLElement;
 }
 
 const MapSource = (props: Props) => {
     const {
         sourceOptions,
         sourceKey,
-        geoJson,
         children,
+        geoJson,
+        createMarkerElement,
     } = props;
 
     const {
@@ -43,8 +46,10 @@ const MapSource = (props: Props) => {
         removeSource,
         isSourceDefined,
         isMapDestroyed,
+        debug,
     } = useContext(MapChildContext);
 
+    const [initialDebug] = useState(debug);
     const [forceUpdate] = useCounter(0);
     const [initialGeoJson] = useState(geoJson);
     const [initialSourceOptions] = useState(sourceOptions);
@@ -60,8 +65,14 @@ const MapSource = (props: Props) => {
                 ? { ...initialSourceOptions, data: initialGeoJson }
                 : initialSourceOptions;
 
-            console.warn(`Creating new source: ${sourceKey}`);
-            map.addSource(sourceKey, options);
+            if (initialDebug) {
+                console.warn(`Creating new source: ${sourceKey}`, options);
+            }
+            try {
+                map.addSource(sourceKey, options);
+            } catch (e) {
+                console.error(e);
+            }
 
             const destroy = () => {
                 const source = getSource(sourceKey);
@@ -85,25 +96,121 @@ const MapSource = (props: Props) => {
             map, mapStyle, sourceKey,
             forceUpdate,
             getSource, removeSource, setSource,
-            initialGeoJson, initialSourceOptions,
+            initialGeoJson, initialSourceOptions, initialDebug,
         ],
     );
 
     // Handle geoJson change
-    // TODO: don't call in first render
     useEffect(
         () => {
-            if (!map || !sourceKey || !geoJson || !mapStyle) {
+            if (!map || !sourceKey || !geoJson || !mapStyle || geoJson === initialGeoJson) {
                 return;
             }
             const source = map.getSource(sourceKey);
-            // FIXME: avoid redundant call to this effect
             if (source.type === 'geojson') {
-                console.warn(`Setting source geojson: ${sourceKey}`);
+                if (initialDebug) {
+                    console.warn(`Setting source geojson: ${sourceKey}`);
+                }
                 source.setData(geoJson);
             }
         },
-        [map, mapStyle, sourceKey, geoJson],
+        [map, mapStyle, sourceKey, geoJson, initialGeoJson, initialDebug],
+    );
+
+    const markers = useRef<Obj<mapboxgl.Marker>>({});
+    const markersOnScreen = useRef<Obj<mapboxgl.Marker>>({});
+
+    const updateMarkers = useCallback(
+        () => {
+            if (!map || !createMarkerElement || !sourceKey) {
+                return;
+            }
+            const newMarkers: Obj<mapboxgl.Marker> = {};
+            const features = map.querySourceFeatures(sourceKey);
+
+            features.forEach((feature) => {
+                if (feature.geometry.type !== 'Point') {
+                    return;
+                }
+                const {
+                    geometry: {
+                        coordinates,
+                    },
+                    properties,
+                } = feature;
+                if (!properties || !properties.cluster) {
+                    return;
+                }
+                const { cluster_id: clusterId } = properties;
+
+
+                let marker = markers.current[clusterId];
+                if (!marker) {
+                    const el = createMarkerElement(properties);
+                    marker = new mapboxgl.Marker({
+                        element: el,
+                    }).setLngLat(coordinates as mapboxgl.LngLatLike);
+
+                    markers.current[clusterId] = marker;
+                }
+                newMarkers[clusterId] = marker;
+
+                if (!markersOnScreen.current[clusterId]) {
+                    marker.addTo(map);
+                }
+            });
+
+            Object.keys(markersOnScreen.current).forEach((markerId) => {
+                if (!newMarkers[markerId]) {
+                    markersOnScreen.current[markerId].remove();
+                }
+            });
+
+            markersOnScreen.current = newMarkers;
+        },
+        [map, createMarkerElement, sourceKey],
+    );
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !mapStyle || !geoJson || !createMarkerElement) {
+                return noop;
+            }
+
+            /*
+            const handleData = (e: mapboxgl.EventData) => {
+                if (e.sourceId !== sourceKey || !e.isSourceLoaded) {
+                    return;
+                }
+                updateMarkers();
+            };
+            map.on('data', handleData);
+            */
+            map.on('move', updateMarkers);
+            map.on('moveend', updateMarkers);
+
+            return () => {
+                // map.off('data', handleData);
+                map.on('move', updateMarkers);
+                map.on('moveend', updateMarkers);
+            };
+        },
+        [map, sourceKey, mapStyle, createMarkerElement, updateMarkers, geoJson],
+    );
+
+    useEffect(
+        () => {
+            if (!map || !sourceKey || !mapStyle || !geoJson || !createMarkerElement) {
+                return noop;
+            }
+
+            const interval = setInterval(updateMarkers, 1000);
+
+            return () => {
+                clearInterval(interval);
+            };
+        },
+        [map, sourceKey, mapStyle, createMarkerElement, updateMarkers, geoJson],
     );
 
     const getLayer = useCallback(
@@ -158,7 +265,9 @@ const MapSource = (props: Props) => {
             // NOTE: check if map is dis-mounted?
             if (map) {
                 const id = getLayerName(sourceKey, layerKey);
-                console.warn(`Removing layer: ${id}`);
+                if (initialDebug) {
+                    console.warn(`Removing layer: ${id}`);
+                }
                 map.removeLayer(id);
             }
 
@@ -170,7 +279,7 @@ const MapSource = (props: Props) => {
 
             setSource(newSource);
         },
-        [map, sourceKey, getSource, setSource],
+        [map, sourceKey, getSource, setSource, initialDebug],
     );
 
     if (!isSourceDefined(sourceKey)) {
@@ -186,6 +295,7 @@ const MapSource = (props: Props) => {
         removeLayer,
         isSourceDefined,
         isMapDestroyed,
+        debug: initialDebug,
     };
 
     return (

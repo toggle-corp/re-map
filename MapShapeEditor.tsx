@@ -1,5 +1,7 @@
-import { useContext, useEffect, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
+import { useContext, useEffect, useState, useRef } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw';
+import { Draw } from './type';
 
 import { MapChildContext } from './context';
 
@@ -16,14 +18,27 @@ interface ModeChangeEvent {
     mode: Mode;
 }
 
+
 interface Props {
     geoJsons: mapboxgl.MapboxGeoJSONFeature[];
 
-    onCreate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[]) => void;
-    onDelete?: (geojsons: mapboxgl.MapboxGeoJSONFeature[]) => void;
-    onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[]) => void;
-    onModeChange?: (mode: Mode) => void;
+    onCreate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw) => void;
+    onDelete?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw) => void;
+    onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw) => void;
+    onModeChange?: (mode: Mode, draw: Draw) => void;
+
+    drawOptions: object; // FIXME
+    drawPosition?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left'; // FIXME
 }
+
+const defaultDrawOptions = ({
+    displayControlsDefault: false,
+    controls: {
+        point: true,
+        polygon: true,
+        trash: true,
+    },
+});
 
 const MapShapeEditor = (props: Props) => {
     const {
@@ -32,6 +47,8 @@ const MapShapeEditor = (props: Props) => {
         onUpdate,
         onModeChange,
         geoJsons,
+        drawOptions = defaultDrawOptions,
+        drawPosition = 'bottom-right',
     } = props;
     const {
         map,
@@ -40,6 +57,9 @@ const MapShapeEditor = (props: Props) => {
     } = useContext(MapChildContext);
 
     const [initialGeoJsons] = useState(geoJsons);
+    const [initialDrawOptions] = useState(drawOptions);
+    const [initialDrawPosition] = useState(drawPosition);
+    const drawRef = useRef<Draw | undefined>();
 
     // Create and destroy control
     useEffect(
@@ -48,17 +68,11 @@ const MapShapeEditor = (props: Props) => {
                 return noop;
             }
 
-            const draw = new MapboxDraw({
-                displayControlsDefault: false,
-                controls: {
-                    point: true,
-                    polygon: true,
-                    trash: true,
-                },
-            });
+            const draw = new MapboxDraw(initialDrawOptions);
 
             map.addControl(
                 draw,
+                initialDrawPosition,
             );
 
             // Load geojsons
@@ -66,13 +80,15 @@ const MapShapeEditor = (props: Props) => {
                 draw.add(geoJson);
             });
 
+            drawRef.current = draw as Draw;
+
             return () => {
                 if (!isMapDestroyed()) {
                     map.removeControl(draw);
                 }
             };
         },
-        [map, mapStyle, isMapDestroyed, initialGeoJsons],
+        [map, mapStyle, isMapDestroyed, initialGeoJsons, initialDrawOptions, initialDrawPosition],
     );
 
     // Handle change in draw.create
@@ -83,9 +99,10 @@ const MapShapeEditor = (props: Props) => {
             }
 
             const handleCreate = (e: EditEvent) => {
-                if (onCreate) {
-                    onCreate(e.features);
+                if (onCreate && drawRef.current) {
+                    onCreate(e.features, drawRef.current);
                 }
+                // TODO: add promoteId, set id in properties
             };
 
             map.on('draw.create', handleCreate);
@@ -106,8 +123,8 @@ const MapShapeEditor = (props: Props) => {
             }
 
             const handleUpdate = (e: EditEvent) => {
-                if (onUpdate) {
-                    onUpdate(e.features);
+                if (onUpdate && drawRef.current) {
+                    onUpdate(e.features, drawRef.current);
                 }
             };
 
@@ -129,8 +146,8 @@ const MapShapeEditor = (props: Props) => {
             }
 
             const handleDelete = (e: EditEvent) => {
-                if (onDelete) {
-                    onDelete(e.features);
+                if (onDelete && drawRef.current) {
+                    onDelete(e.features, drawRef.current);
                 }
             };
 
@@ -152,8 +169,8 @@ const MapShapeEditor = (props: Props) => {
             }
 
             const handleModeChange = (e: ModeChangeEvent) => {
-                if (onModeChange) {
-                    onModeChange(e.mode);
+                if (onModeChange && drawRef.current) {
+                    onModeChange(e.mode, drawRef.current);
                 }
             };
 
@@ -166,6 +183,21 @@ const MapShapeEditor = (props: Props) => {
             };
         },
         [map, mapStyle, onModeChange, isMapDestroyed],
+    );
+
+    // Handle geojson update
+    useEffect(
+        () => {
+            if (!map || !mapStyle || !drawRef.current || geoJsons === initialGeoJsons) {
+                return;
+            }
+
+            drawRef.current.set({
+                type: 'FeatureCollection',
+                features: geoJsons,
+            });
+        },
+        [geoJsons],
     );
 
     return null;

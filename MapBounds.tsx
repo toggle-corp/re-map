@@ -9,7 +9,7 @@ interface Props {
 }
 
 const MapBounds = (props: Props) => {
-    const { map } = useContext(MapChildContext);
+    const { map, setBounds } = useContext(MapChildContext);
     const {
         padding,
         duration,
@@ -25,13 +25,14 @@ const MapBounds = (props: Props) => {
             if (!map || !bounds) {
                 return;
             }
-
             // NOTE: just to be safe here
             if (bounds.length < 4) {
                 return;
             }
 
             const [fooLon, fooLat, barLon, barLat] = bounds;
+            setBounds(bounds, initialPadding, initialDuration);
+
             map.fitBounds(
                 [[fooLon, fooLat], [barLon, barLat]],
                 {
@@ -40,7 +41,7 @@ const MapBounds = (props: Props) => {
                 },
             );
         },
-        [map, bounds, initialPadding, initialDuration],
+        [map, bounds, initialPadding, initialDuration, setBounds],
     );
 
     return null;

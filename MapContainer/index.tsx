@@ -1,8 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { _cs } from '@togglecorp/fujs';
 
 import { MapChildContext } from '../context';
-import styles from './styles.scss';
+import useDimension from '../useDimension';
+
+import styles from './styles.css';
+// import styles from './styles.scss';
 
 interface Props {
     className?: string;
@@ -11,7 +14,17 @@ interface Props {
 // TODO: make container responsive
 const MapContainer = (props: Props) => {
     const { className } = props;
-    const { mapContainerRef } = useContext(MapChildContext);
+    const { mapContainerRef, map } = useContext(MapChildContext);
+    const rect = useDimension(mapContainerRef);
+
+    useEffect(
+        () => {
+            if (map) {
+                map.resize();
+            }
+        },
+        [rect, map],
+    );
 
     return (
         <div

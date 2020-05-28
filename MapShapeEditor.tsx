@@ -56,7 +56,26 @@ const MapShapeEditor = (props: Props) => {
         map,
         mapStyle,
         isMapDestroyed,
+        mapContainerRef,
     } = useContext(MapChildContext);
+
+    useEffect(() => {
+        if (!mapContainerRef || !mapContainerRef.current) {
+            return;
+        }
+        if (disabled) {
+            mapContainerRef.current.className =
+                `${mapContainerRef.current.className} disabled-map-draw-control`;
+        } else {
+            const classNames = mapContainerRef.current.className.split(' ');
+            const indexOfDisabled = classNames.indexOf('disabled-map-draw-control');
+            if (indexOfDisabled > -1) {
+                const newClassNames = [...classNames];
+                newClassNames.splice(indexOfDisabled, 1);
+                mapContainerRef.current.className = newClassNames.join(' ');
+            }
+        }
+    }, [mapContainerRef, disabled]);
 
     // const [initialGeoJsons] = useState(geoJsons);
     const [initialDrawOptions] = useState(drawOptions);
@@ -96,7 +115,7 @@ const MapShapeEditor = (props: Props) => {
     // Handle change in draw.create
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -114,13 +133,13 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onCreate, isMapDestroyed],
+        [map, mapStyle, onCreate, isMapDestroyed, disabled],
     );
 
     // Handle change in draw.update
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -137,13 +156,13 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onUpdate, isMapDestroyed],
+        [map, mapStyle, onUpdate, isMapDestroyed, disabled],
     );
 
     // Handle change in draw.delete
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -160,13 +179,13 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onDelete, isMapDestroyed],
+        [map, mapStyle, onDelete, isMapDestroyed, disabled],
     );
 
     // Handle change in draw.modechange
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -184,7 +203,7 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onModeChange, isMapDestroyed],
+        [map, mapStyle, onModeChange, isMapDestroyed, disabled],
     );
 
     // Handle geojson update
@@ -214,6 +233,7 @@ const MapShapeEditor = (props: Props) => {
 
 MapShapeEditor.defaultProps = {
     geoJsons: [],
+    disabled: false,
 };
 
 export default MapShapeEditor;

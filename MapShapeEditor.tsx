@@ -29,6 +29,7 @@ interface Props {
 
     drawOptions: object; // FIXME
     drawPosition?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left'; // FIXME
+    disabled?: boolean;
 }
 
 const defaultDrawOptions = ({
@@ -49,6 +50,7 @@ const MapShapeEditor = (props: Props) => {
         geoJsons,
         drawOptions = defaultDrawOptions,
         drawPosition = 'bottom-right',
+        disabled,
     } = props;
     const {
         map,
@@ -56,7 +58,7 @@ const MapShapeEditor = (props: Props) => {
         isMapDestroyed,
     } = useContext(MapChildContext);
 
-    const [initialGeoJsons] = useState(geoJsons);
+    // const [initialGeoJsons] = useState(geoJsons);
     const [initialDrawOptions] = useState(drawOptions);
     const [initialDrawPosition] = useState(drawPosition);
     const drawRef = useRef<Draw | undefined>();
@@ -76,9 +78,9 @@ const MapShapeEditor = (props: Props) => {
             );
 
             // Load geojsons
-            initialGeoJsons.forEach((geoJson) => {
-                draw.add(geoJson);
-            });
+            // initialGeoJsons.forEach((geoJson) => {
+            //     draw.add(geoJson);
+            // });
 
             drawRef.current = draw as Draw;
 
@@ -88,7 +90,7 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, isMapDestroyed, initialGeoJsons, initialDrawOptions, initialDrawPosition],
+        [map, mapStyle, isMapDestroyed, initialDrawOptions, initialDrawPosition],
     );
 
     // Handle change in draw.create
@@ -188,16 +190,22 @@ const MapShapeEditor = (props: Props) => {
     // Handle geojson update
     useEffect(
         () => {
-            if (!map || !mapStyle || !drawRef.current || geoJsons === initialGeoJsons) {
+            if (!map || !mapStyle || !drawRef.current) {
                 return;
             }
-
-            drawRef.current.set({
-                type: 'FeatureCollection',
-                features: geoJsons,
-            });
+            if (disabled) {
+                drawRef.current.set({
+                    type: 'FeatureCollection',
+                    features: [],
+                });
+            } else {
+                drawRef.current.set({
+                    type: 'FeatureCollection',
+                    features: geoJsons,
+                });
+            }
         },
-        [geoJsons],
+        [map, mapStyle, geoJsons, disabled],
     );
 
     return null;

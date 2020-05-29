@@ -1,6 +1,8 @@
 import mapboxgl from 'mapbox-gl';
 import { useContext, useEffect, useState, useRef } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw';
+import { _cs } from '@togglecorp/fujs';
+
 import { Draw } from './type';
 
 import { MapChildContext } from './context';
@@ -29,6 +31,7 @@ interface Props {
 
     drawOptions: object; // FIXME
     drawPosition?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left'; // FIXME
+    disabled?: boolean;
 }
 
 const defaultDrawOptions = ({
@@ -40,6 +43,8 @@ const defaultDrawOptions = ({
     },
 });
 
+const disabledClassName = 'disabled-map-draw-control';
+
 const MapShapeEditor = (props: Props) => {
     const {
         onCreate,
@@ -49,14 +54,16 @@ const MapShapeEditor = (props: Props) => {
         geoJsons,
         drawOptions = defaultDrawOptions,
         drawPosition = 'bottom-right',
+        disabled,
     } = props;
     const {
         map,
         mapStyle,
         isMapDestroyed,
+        mapContainerRef,
     } = useContext(MapChildContext);
 
-    const [initialGeoJsons] = useState(geoJsons);
+    // const [initialGeoJsons] = useState(geoJsons);
     const [initialDrawOptions] = useState(drawOptions);
     const [initialDrawPosition] = useState(drawPosition);
     const drawRef = useRef<Draw | undefined>();
@@ -76,9 +83,9 @@ const MapShapeEditor = (props: Props) => {
             );
 
             // Load geojsons
-            initialGeoJsons.forEach((geoJson) => {
-                draw.add(geoJson);
-            });
+            // initialGeoJsons.forEach((geoJson) => {
+            //     draw.add(geoJson);
+            // });
 
             drawRef.current = draw as Draw;
 
@@ -88,13 +95,13 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, isMapDestroyed, initialGeoJsons, initialDrawOptions, initialDrawPosition],
+        [map, mapStyle, isMapDestroyed, initialDrawOptions, initialDrawPosition],
     );
 
     // Handle change in draw.create
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -112,13 +119,13 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onCreate, isMapDestroyed],
+        [map, mapStyle, onCreate, isMapDestroyed, disabled],
     );
 
     // Handle change in draw.update
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -135,13 +142,13 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onUpdate, isMapDestroyed],
+        [map, mapStyle, onUpdate, isMapDestroyed, disabled],
     );
 
     // Handle change in draw.delete
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -158,13 +165,13 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onDelete, isMapDestroyed],
+        [map, mapStyle, onDelete, isMapDestroyed, disabled],
     );
 
     // Handle change in draw.modechange
     useEffect(
         () => {
-            if (!map || !mapStyle) {
+            if (!map || !mapStyle || disabled) {
                 return noop;
             }
 
@@ -182,22 +189,48 @@ const MapShapeEditor = (props: Props) => {
                 }
             };
         },
-        [map, mapStyle, onModeChange, isMapDestroyed],
+        [map, mapStyle, onModeChange, isMapDestroyed, disabled],
     );
 
     // Handle geojson update
     useEffect(
         () => {
-            if (!map || !mapStyle || !drawRef.current || geoJsons === initialGeoJsons) {
+            if (!map || !mapStyle || !drawRef.current) {
                 return;
             }
-
-            drawRef.current.set({
-                type: 'FeatureCollection',
-                features: geoJsons,
-            });
+            if (disabled) {
+                drawRef.current.set({
+                    type: 'FeatureCollection',
+                    features: [],
+                });
+            } else {
+                drawRef.current.set({
+                    type: 'FeatureCollection',
+                    features: geoJsons,
+                });
+            }
         },
-        [geoJsons],
+        [map, mapStyle, geoJsons, disabled],
+    );
+
+    // Handle disabling controls
+    useEffect(
+        () => {
+            if (!mapContainerRef || !mapContainerRef.current) {
+                return;
+            }
+            if (disabled) {
+                mapContainerRef.current.className = _cs(
+                    mapContainerRef.current.className,
+                    disabledClassName,
+                );
+            } else {
+                const classNames = mapContainerRef.current.className.split(' ');
+                const filteredClassNames = classNames.filter(name => name !== disabledClassName);
+                mapContainerRef.current.className = _cs(...filteredClassNames);
+            }
+        },
+        [mapContainerRef, disabled],
     );
 
     return null;
@@ -206,6 +239,7 @@ const MapShapeEditor = (props: Props) => {
 
 MapShapeEditor.defaultProps = {
     geoJsons: [],
+    disabled: false,
 };
 
 export default MapShapeEditor;

@@ -8,7 +8,7 @@
             .mapboxgl-ctrl-top-right {
                 .mapbox-gl-draw_ctrl-draw-btn {
                     pointer-events: none;
-                    filter: opacity(50%);
+                    filter: opacity(30%);
                 }
             }
         }

@@ -1,6 +1,8 @@
 import mapboxgl from 'mapbox-gl';
 import { useContext, useEffect, useState, useRef } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw';
+import { _cs } from '@togglecorp/fujs';
+
 import { Draw } from './type';
 
 import { MapChildContext } from './context';
@@ -41,6 +43,8 @@ const defaultDrawOptions = ({
     },
 });
 
+const disabledClassName = 'disabled-map-draw-control';
+
 const MapShapeEditor = (props: Props) => {
     const {
         onCreate,
@@ -58,24 +62,6 @@ const MapShapeEditor = (props: Props) => {
         isMapDestroyed,
         mapContainerRef,
     } = useContext(MapChildContext);
-
-    useEffect(() => {
-        if (!mapContainerRef || !mapContainerRef.current) {
-            return;
-        }
-        if (disabled) {
-            mapContainerRef.current.className =
-                `${mapContainerRef.current.className} disabled-map-draw-control`;
-        } else {
-            const classNames = mapContainerRef.current.className.split(' ');
-            const indexOfDisabled = classNames.indexOf('disabled-map-draw-control');
-            if (indexOfDisabled > -1) {
-                const newClassNames = [...classNames];
-                newClassNames.splice(indexOfDisabled, 1);
-                mapContainerRef.current.className = newClassNames.join(' ');
-            }
-        }
-    }, [mapContainerRef, disabled]);
 
     // const [initialGeoJsons] = useState(geoJsons);
     const [initialDrawOptions] = useState(drawOptions);
@@ -225,6 +211,26 @@ const MapShapeEditor = (props: Props) => {
             }
         },
         [map, mapStyle, geoJsons, disabled],
+    );
+
+    // Handle disabling controls
+    useEffect(
+        () => {
+            if (!mapContainerRef || !mapContainerRef.current) {
+                return;
+            }
+            if (disabled) {
+                mapContainerRef.current.className = _cs(
+                    mapContainerRef.current.className,
+                    disabledClassName,
+                );
+            } else {
+                const classNames = mapContainerRef.current.className.split(' ');
+                const filteredClassNames = classNames.filter(name => name !== disabledClassName);
+                mapContainerRef.current.className = _cs(...filteredClassNames);
+            }
+        },
+        [mapContainerRef, disabled],
     );
 
     return null;

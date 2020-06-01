@@ -27,7 +27,7 @@ interface ExtendedLayer extends Layer {
 }
 
 function findLayerFromLayers(layers: ExtendedLayer[], layerKey: string) {
-    const layer = layers.find(l => l.layerKey === layerKey);
+    const layer = layers.find((l) => l.layerKey === layerKey);
     return layer;
 }
 
@@ -169,8 +169,8 @@ const Map: React.FC<Props> = (props) => {
                 } = data;
 
                 const clickableLayerKeys = layers
-                    .filter(layer => !!layer.onClick)
-                    .map(layer => layer.layerKey);
+                    .filter((layer) => !!layer.onClick)
+                    .map((layer) => layer.layerKey);
 
                 const clickableFeatures = map.queryRenderedFeatures(
                     point,
@@ -207,8 +207,8 @@ const Map: React.FC<Props> = (props) => {
                 } = data;
 
                 const clickableLayerKeys = layers
-                    .filter(layer => !!layer.onDoubleClick)
-                    .map(layer => layer.layerKey);
+                    .filter((layer) => !!layer.onDoubleClick)
+                    .map((layer) => layer.layerKey);
 
                 const clickableFeatures = map.queryRenderedFeatures(
                     point,
@@ -245,8 +245,8 @@ const Map: React.FC<Props> = (props) => {
                 } = data;
 
                 const interactiveLayerKeys = layers
-                    .filter(layer => !!layer.onClick || !!layer.onDoubleClick)
-                    .map(layer => layer.layerKey);
+                    .filter((layer) => !!layer.onClick || !!layer.onDoubleClick)
+                    .map((layer) => layer.layerKey);
                 const interactiveFeatures = map.queryRenderedFeatures(
                     point,
                     { layers: interactiveLayerKeys },
@@ -258,8 +258,8 @@ const Map: React.FC<Props> = (props) => {
                 }
 
                 const hoverableLayerKeys = layers
-                    .filter(layer => !!layer.onMouseEnter || !!layer.onMouseLeave)
-                    .map(layer => layer.layerKey);
+                    .filter((layer) => !!layer.onMouseEnter || !!layer.onMouseLeave)
+                    .map((layer) => layer.layerKey);
 
                 const hoverableFeatures = map.queryRenderedFeatures(
                     point,

@@ -69,9 +69,7 @@ const MapTooltip = (props: Props) => {
                 return noop;
             }
 
-            popupRef.current = new mapboxgl.Popup(initialTooltipOptions)
-                .setDOMContent(tooltipContainerRef.current)
-                .addTo(map);
+            popupRef.current = new mapboxgl.Popup(initialTooltipOptions);
 
             if (initialCoordinates) {
                 popupRef.current.setLngLat(initialCoordinates);
@@ -79,6 +77,9 @@ const MapTooltip = (props: Props) => {
             if (initialTrackPointer) {
                 popupRef.current.trackPointer();
             }
+
+            popupRef.current.setDOMContent(tooltipContainerRef.current);
+            popupRef.current.addTo(map);
 
             return () => {
                 if (popupRef.current) {

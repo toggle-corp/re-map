@@ -15,7 +15,7 @@ interface MapChildState {
 
     setBounds: (
         bounds: [number, number, number, number] | undefined,
-        padding: number | undefined,
+        padding: number | mapboxgl.PaddingOptions | undefined,
         duration: number | undefined,
     ) => void;
 

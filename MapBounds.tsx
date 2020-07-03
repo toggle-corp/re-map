@@ -4,7 +4,7 @@ import { MapChildContext } from './context';
 
 interface Props {
     bounds?: [number, number, number, number];
-    padding: number;
+    padding: number | mapboxgl.PaddingOptions;
     duration: number;
 }
 
@@ -16,7 +16,6 @@ const MapBounds = (props: Props) => {
         bounds,
     } = props;
 
-    const [initialPadding] = useState(padding);
     const [initialDuration] = useState(duration);
 
     // Handle change in bounds
@@ -31,17 +30,17 @@ const MapBounds = (props: Props) => {
             }
 
             const [fooLon, fooLat, barLon, barLat] = bounds;
-            setBounds(bounds, initialPadding, initialDuration);
+            setBounds(bounds, padding, initialDuration);
 
             map.fitBounds(
                 [[fooLon, fooLat], [barLon, barLat]],
                 {
-                    padding: initialPadding,
+                    padding,
                     duration: initialDuration,
                 },
             );
         },
-        [map, bounds, initialPadding, initialDuration, setBounds],
+        [map, bounds, padding, initialDuration, setBounds],
     );
 
     return null;

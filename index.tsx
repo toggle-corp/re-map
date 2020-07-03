@@ -89,7 +89,7 @@ const Map: React.FC<Props> = (props) => {
     const [loaded, setLoaded] = useState<boolean>(false);
 
     const boundsRef = useRef<[number, number, number, number] | undefined>();
-    const paddingRef = useRef<number | undefined>();
+    const paddingRef = useRef<number | mapboxgl.PaddingOptions | undefined>();
     const durationRef = useRef<number | undefined>();
 
     const lastIn = useRef<LastIn | undefined>(undefined);
@@ -101,7 +101,7 @@ const Map: React.FC<Props> = (props) => {
     const setBounds = useCallback(
         (
             bounds: [number, number, number, number] | undefined,
-            padding: number | undefined,
+            padding: number | mapboxgl.PaddingOptions | undefined,
             duration: number | undefined,
         ) => {
             boundsRef.current = bounds;

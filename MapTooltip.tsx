@@ -29,6 +29,7 @@ const MapTooltip = (props: Props) => {
     } = props;
 
     const tooltipContainerRef = useRef<HTMLDivElement | null>(null);
+    const popupUpdateTimeoutRef = useRef<number | undefined>();
     const popupRef = useRef<mapboxgl.Popup | null>(null);
 
     const [initialTooltipOptions] = useState(tooltipOptions);
@@ -81,7 +82,22 @@ const MapTooltip = (props: Props) => {
             popupRef.current.setDOMContent(tooltipContainerRef.current);
             popupRef.current.addTo(map);
 
+            // NOTE: this is a fix for bad initial popup placement
+            popupUpdateTimeoutRef.current = window.setTimeout(
+                () => {
+                    if (popupRef.current) {
+                        // eslint-disable-next-line no-underscore-dangle
+                        popupRef.current._update();
+                    }
+                },
+                0,
+            );
+
             return () => {
+                if (popupUpdateTimeoutRef.current) {
+                    window.clearTimeout(popupUpdateTimeoutRef.current);
+                }
+
                 if (popupRef.current) {
                     popupRef.current.remove();
                     popupRef.current = null;

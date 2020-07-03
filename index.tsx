@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
-// import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { getLayerName } from './utils';
 import { Layer, Sources, Source } from './type';

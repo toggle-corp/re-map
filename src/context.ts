@@ -42,7 +42,6 @@ const initialMapChildState: MapChildState = {
 
 export const MapChildContext = React.createContext(initialMapChildState);
 
-
 interface SourceChildState {
     map?: mapboxgl.Map;
     mapStyle?: mapboxgl.MapboxOptions['style'];

@@ -15,10 +15,12 @@ const resizeHandlers: ResizeHandlers = {};
 const handleResize: ResizeObserverCallback = (entries) => {
     entries.forEach((entry) => {
         const element = entry.target;
-        const key = element.dataset.resizeHandlerKey;
-        if (key && resizeHandlers[key]) {
-            const { contentRect: rect } = entry;
-            resizeHandlers[key](rect);
+        if (element instanceof HTMLElement) {
+            const key = element.dataset.resizeHandlerKey;
+            if (key && resizeHandlers[key]) {
+                const { contentRect: rect } = entry;
+                resizeHandlers[key](rect);
+            }
         }
     });
 };

@@ -46,7 +46,6 @@ const MapBounds = (props: Props) => {
     return null;
 };
 
-
 MapBounds.defaultProps = {
     padding: 0,
     duration: 200, // ms

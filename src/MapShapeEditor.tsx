@@ -1,6 +1,7 @@
 import mapboxgl from 'mapbox-gl';
 import { useContext, useEffect, useState, useRef } from 'react';
-import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw';
+// import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw';
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { _cs } from '@togglecorp/fujs';
 
 import { Draw } from './type';
@@ -19,7 +20,6 @@ interface EditEvent {
 interface ModeChangeEvent {
     mode: Mode;
 }
-
 
 interface Props {
     geoJsons: mapboxgl.MapboxGeoJSONFeature[];
@@ -235,7 +235,6 @@ const MapShapeEditor = (props: Props) => {
 
     return null;
 };
-
 
 MapShapeEditor.defaultProps = {
     geoJsons: [],

@@ -28,8 +28,8 @@ const MapTooltip = (props: Props) => {
         trackPointer,
     } = props;
 
+    // const popupUpdateTimeoutRef = useRef<number | undefined>();
     const tooltipContainerRef = useRef<HTMLDivElement | null>(null);
-    const popupUpdateTimeoutRef = useRef<number | undefined>();
     const popupRef = useRef<mapboxgl.Popup | null>(null);
 
     const [initialTooltipOptions] = useState(tooltipOptions);
@@ -82,6 +82,7 @@ const MapTooltip = (props: Props) => {
             popupRef.current.setDOMContent(tooltipContainerRef.current);
             popupRef.current.addTo(map);
 
+            /*
             // NOTE: this is a fix for bad initial popup placement
             popupUpdateTimeoutRef.current = window.setTimeout(
                 () => {
@@ -92,11 +93,14 @@ const MapTooltip = (props: Props) => {
                 },
                 0,
             );
+            */
 
             return () => {
+                /*
                 if (popupUpdateTimeoutRef.current) {
                     window.clearTimeout(popupUpdateTimeoutRef.current);
                 }
+                */
 
                 if (popupRef.current) {
                     popupRef.current.remove();
@@ -140,7 +144,6 @@ const MapTooltip = (props: Props) => {
 
     return null;
 };
-
 
 MapTooltip.defaultProps = {
     hidden: false,

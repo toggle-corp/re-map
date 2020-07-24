@@ -81,7 +81,7 @@ const MapSource = (props: Props) => {
                     return;
                 }
 
-                Object.entries(source.layers).forEach(([_, layer]) => {
+                Object.entries(source.layers).forEach(([, layer]) => {
                     layer.destroy();
                 });
                 removeSource(sourceKey);
@@ -142,7 +142,6 @@ const MapSource = (props: Props) => {
                     return;
                 }
                 const { cluster_id: clusterId } = properties;
-
 
                 let marker = markers.current[clusterId];
                 if (!marker) {
@@ -303,10 +302,6 @@ const MapSource = (props: Props) => {
             {children}
         </SourceChildContext.Provider>
     );
-};
-
-
-MapSource.defaultProps = {
 };
 
 export default MapSource;

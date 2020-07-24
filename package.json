@@ -1,0 +1,80 @@
+{
+    "name": "@togglecorp/re-map",
+    "version": "0.0.2",
+    "description": "MapboxGL JS wrapper for React",
+    "files": [
+        "/build"
+    ],
+    "main": "build/index.js",
+    "module": "build/index.es.js",
+    "typings": "build/index.d.ts",
+    "scripts": {
+        "prepare": "rollup -c && tsc",
+        "build": "rollup -c && tsc",
+        "watch": "rollup -cw",
+        "typecheck": "tsc",
+        "lint": "eslint --rule 'import/no-unresolved: 0' 'src/**'",
+        "test": "TZ=Asia/Katmandu jest",
+        "test:coverage": "TZ=Asia/Katmandu jest --coverage"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/toggle-corp/fujs.git"
+    },
+    "author": "tnagorra",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/toggle-corp/fujs/issues"
+    },
+    "homepage": "https://github.com/toggle-corp/fujs#readme",
+    "devDependencies": {
+        "@babel/core": "^7.7.7",
+        "@babel/plugin-proposal-class-properties": "^7.7.4",
+        "@babel/plugin-proposal-decorators": "^7.7.4",
+        "@babel/plugin-proposal-export-namespace-from": "^7.7.4",
+        "@babel/plugin-proposal-function-sent": "^7.7.4",
+        "@babel/plugin-proposal-json-strings": "^7.7.4",
+        "@babel/plugin-proposal-numeric-separator": "^7.7.4",
+        "@babel/plugin-proposal-throw-expressions": "^7.7.4",
+        "@babel/plugin-syntax-dynamic-import": "^7.7.4",
+        "@babel/plugin-syntax-import-meta": "^7.7.4",
+        "@babel/plugin-transform-runtime": "^7.7.6",
+        "@babel/preset-env": "^7.7.7",
+        "@babel/preset-react": "^7.10.4",
+        "@babel/preset-typescript": "^7.7.7",
+        "@types/core-js": "^2.5.2",
+        "@types/jest": "^24.0.16",
+        "@types/mapbox-gl": "^1.10.1",
+        "@types/react": "^16.9.43",
+        "@types/react-dom": "^16.9.8",
+        "@typescript-eslint/eslint-plugin": "^2.12.0",
+        "@typescript-eslint/parser": "^2.12.0",
+        "babel-eslint": "^10.0.3",
+        "babel-jest": "^24.9.0",
+        "eslint": "^6.7.2",
+        "eslint-config-airbnb": "^18.0.1",
+        "eslint-config-airbnb-base": "^14.0.0",
+        "eslint-plugin-import": "^2.19.1",
+        "eslint-plugin-react": "^7.20.3",
+        "eslint-plugin-react-hooks": "^4.0.8",
+        "jest": "^24.9.0",
+        "rollup": "^1.27.13",
+        "rollup-plugin-babel": "^4.3.3",
+        "rollup-plugin-commonjs": "^10.1.0",
+        "rollup-plugin-eslint": "^7.0.0",
+        "rollup-plugin-node-resolve": "^5.2.0",
+        "typescript": "^3.7.3"
+    },
+    "peerDependencies": {
+        "@babel/runtime": "^7.10.5",
+        "@mapbox/mapbox-gl-draw": "^1.2.0",
+        "mapbox-gl": "^1.11.1",
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1"
+    },
+    "dependencies": {
+        "@togglecorp/fujs": "^1.8.0",
+        "immer": "^7.0.5",
+        "resize-observer-polyfill": "^1.5.1"
+    }
+}

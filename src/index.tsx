@@ -33,7 +33,7 @@ function findLayerFromLayers(layers: ExtendedLayer[], layerKey: string) {
 
 function getLayersForSources(sources: Sources) {
     const layers = Object.entries(sources)
-        .filter(([_, source]) => !!source.layers)
+        .filter(([, source]) => !!source.layers)
         .map(([sourceKey, source]) => (
             Object.entries(source.layers)
                 .map(([layerKey, layer]) => ({
@@ -41,9 +41,8 @@ function getLayersForSources(sources: Sources) {
                     sourceKey,
                     layerKey: getLayerName(sourceKey, layerKey),
                 }))
-        ))
-        .flat();
-    return layers;
+        ));
+    return layers.flat();
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -62,9 +61,11 @@ interface Props {
     navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
 
     debug?: boolean;
+
+    children?: React.ReactNode;
 }
 
-const Map: React.FC<Props> = (props) => {
+function Map(props: Props) {
     const {
         mapStyle: mapStyleFromProps,
         mapOptions,
@@ -434,7 +435,6 @@ const Map: React.FC<Props> = (props) => {
         [mapStyleFromProps, initialDebug],
     );
 
-
     const isMapDestroyed = useCallback(
         () => !!mapDestroyedRef.current,
         [],
@@ -513,7 +513,7 @@ const Map: React.FC<Props> = (props) => {
             {mapChildren}
         </MapChildContext.Provider>
     );
-};
+}
 
 Map.defaultProps = {
     scaleControlShown: false,
@@ -526,3 +526,16 @@ Map.defaultProps = {
 };
 
 export default Map;
+
+export * from './utils';
+export * from './type';
+export * from './context';
+export { default as MapTooltip } from './MapTooltip';
+export { default as MapSource } from './MapSource';
+export { default as MapState } from './MapSource/MapState';
+export { default as MapLayer } from './MapSource/MapLayer';
+export { default as MapShapeEditor } from './MapShapeEditor';
+export { default as MapOrder } from './MapOrder';
+export { default as MapImage } from './MapImage';
+export { default as MapContainer } from './MapContainer';
+export { default as MapBounds } from './MapBounds';

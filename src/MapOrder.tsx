@@ -51,8 +51,4 @@ const MapOrder = (props: Props) => {
     return null;
 };
 
-
-MapOrder.defaultProps = {
-};
-
 export default MapOrder;

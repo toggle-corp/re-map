@@ -213,7 +213,6 @@ const MapLayer = (props: Props) => {
                 return noop;
             }
 
-
             const handleAnimation = (timestamp: number) => {
                 const values = onAnimationFrame(timestamp);
                 if (values) {
@@ -238,10 +237,6 @@ const MapLayer = (props: Props) => {
     );
 
     return null;
-};
-
-
-MapLayer.defaultProps = {
 };
 
 export default MapLayer;

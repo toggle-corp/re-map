@@ -120,7 +120,6 @@ function MapState<T>(props: Props<T>) {
     return null;
 }
 
-
 MapState.defaultProps = {
     attributes: [],
 };

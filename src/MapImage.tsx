@@ -7,12 +7,8 @@ const noop = () => {};
 
 type Props = {
     name: string;
-    url: string;
-    imageOptions?: { pixelRatio?: number; sdf?: boolean };
-    onLoad?: (loaded: boolean) => void;
-} | {
-    name: string;
-    image: Img;
+    url?: string;
+    image?: Img;
     imageOptions?: { pixelRatio?: number; sdf?: boolean };
     onLoad?: (loaded: boolean) => void;
 }
@@ -90,10 +86,6 @@ const MapImage = (props: Props) => {
     );
 
     return null;
-};
-
-
-MapImage.defaultProps = {
 };
 
 export default MapImage;

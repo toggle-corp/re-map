@@ -13,7 +13,7 @@ const noop = () => {};
 function useCounter(initialValue = 0): [() => void, number] {
     const [value, updateValue] = useState(initialValue);
     const increaseValue = useCallback(() => {
-        updateValue(v => v + 1);
+        updateValue((v) => v + 1);
     }, []);
     return [increaseValue, value];
 }
@@ -26,7 +26,7 @@ interface Props {
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
-    createMarkerElement?: (properties: object) => HTMLElement;
+    createMarkerElement?: (properties: Record<string, unknown>) => HTMLElement;
 }
 
 const MapSource = (props: Props) => {
@@ -81,7 +81,7 @@ const MapSource = (props: Props) => {
                     return;
                 }
 
-                Object.entries(source.layers).forEach(([_, layer]) => {
+                Object.entries(source.layers).forEach(([, layer]) => {
                     layer.destroy();
                 });
                 removeSource(sourceKey);
@@ -142,7 +142,6 @@ const MapSource = (props: Props) => {
                     return;
                 }
                 const { cluster_id: clusterId } = properties;
-
 
                 let marker = markers.current[clusterId];
                 if (!marker) {
@@ -303,10 +302,6 @@ const MapSource = (props: Props) => {
             {children}
         </SourceChildContext.Provider>
     );
-};
-
-
-MapSource.defaultProps = {
 };
 
 export default MapSource;

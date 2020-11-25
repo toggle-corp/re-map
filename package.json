@@ -19,14 +19,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/toggle-corp/fujs.git"
+        "url": "git+https://github.com/toggle-corp/re-map.git"
     },
     "author": "tnagorra",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/toggle-corp/fujs/issues"
+        "url": "https://github.com/toggle-corp/re-map/issues"
     },
-    "homepage": "https://github.com/toggle-corp/fujs#readme",
+    "homepage": "https://github.com/toggle-corp/re-map#readme",
     "devDependencies": {
         "@babel/core": "^7.7.7",
         "@babel/plugin-proposal-class-properties": "^7.7.4",

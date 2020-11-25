@@ -22,6 +22,19 @@ export interface Layer {
         map: mapboxgl.Map,
     ) => void;
     onMouseLeave?: (map: mapboxgl.Map) => void;
+
+    onDrag?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+        map: mapboxgl.Map,
+    ) => void;
+    onDragEnd?: (
+        feature: mapboxgl.MapboxGeoJSONFeature,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+        map: mapboxgl.Map,
+    ) => void;
 }
 
 export interface Source {

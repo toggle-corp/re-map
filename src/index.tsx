@@ -12,8 +12,6 @@ if (TOKEN) {
     mapboxgl.accessToken = TOKEN;
 }
 
-type Position = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-
 interface LastIn {
     id: string | number | undefined;
     layerName: string;
@@ -26,6 +24,8 @@ interface LastIn {
 interface Dragging {
     id: string | number | undefined;
     layerName: string;
+    // NOTE: may not need to use these two below
+    sourceName: string;
 }
 
 interface ExtendedLayer extends Layer {
@@ -55,16 +55,18 @@ function getLayersForSources(sources: Sources) {
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop() {}
 
+type Pos = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+
 interface Props {
     mapStyle: mapboxgl.MapboxOptions['style'];
     mapOptions: Omit<mapboxgl.MapboxOptions, 'style' | 'container'>;
 
     scaleControlShown: boolean;
-    scaleControlPosition?: Position;
+    scaleControlPosition?: Pos;
     scaleControlOptions?: ConstructorParameters<typeof mapboxgl.ScaleControl>[0];
 
     navControlShown: boolean;
-    navControlPosition?: Position;
+    navControlPosition?: Pos;
     navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
 
     debug?: boolean;
@@ -126,6 +128,7 @@ function Map(props: Props) {
                 console.error('No Mapboxgl support.');
                 return noop;
             }
+
             const { current: mapContainer } = mapContainerRef;
             if (!mapContainer) {
                 console.error('No container found.');
@@ -165,9 +168,15 @@ function Map(props: Props) {
             */
 
             const handleMouseDown = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+                console.warn('Mouse is down', dragging.current);
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
+                }
+
+                if (dragging.current) {
+                    dragging.current = undefined;
+                    mapboxglMap.getCanvas().style.cursor = '';
                 }
 
                 const { point } = data;
@@ -183,17 +192,21 @@ function Map(props: Props) {
 
                 if (draggableFeatures.length <= 0) {
                     console.warn('No draggable layer found.');
+                    return;
                 }
                 const firstFeature = draggableFeatures[0];
                 dragging.current = {
                     id: firstFeature.id,
                     layerName: firstFeature.layer.id,
-                    // sourceName: firstFeature.source,
+                    sourceName: firstFeature.source,
                     // sourceLayer: firstFeature.sourceLayer,
                 };
                 mapboxglMap.getCanvas().style.cursor = 'grabbing';
+                data.preventDefault();
             };
+
             const handleMouseUp = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+                console.warn('Mouse is up', dragging.current);
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
@@ -206,21 +219,12 @@ function Map(props: Props) {
                     lngLat,
                 } = data;
 
-                const {
-                    layerName,
-                    id: featureId,
-                } = dragging.current;
-                const draggedFeatures = map.queryRenderedFeatures(
-                    undefined,
-                    { layers: [layerName] },
-                );
-                const feature = draggedFeatures.find((item) => item.id === featureId);
-
+                const { layerName } = dragging.current;
                 const layers = getLayersForSources(sourcesRef.current);
                 const layer = findLayerFromLayers(layers, layerName);
 
-                if (layer && layer.onDragEnd && feature) {
-                    layer.onDragEnd(feature, lngLat, point, map);
+                if (layer && layer.onDragEnd) {
+                    layer.onDragEnd(dragging.current, lngLat, point, map);
                 }
                 // set dragging false
                 dragging.current = undefined;
@@ -233,6 +237,8 @@ function Map(props: Props) {
                     return;
                 }
                 if (dragging.current) {
+                    dragging.current = undefined;
+                    mapboxglMap.getCanvas().style.cursor = '';
                     return;
                 }
 
@@ -274,6 +280,8 @@ function Map(props: Props) {
                     return;
                 }
                 if (dragging.current) {
+                    dragging.current = undefined;
+                    mapboxglMap.getCanvas().style.cursor = '';
                     return;
                 }
 
@@ -315,20 +323,28 @@ function Map(props: Props) {
                     return;
                 }
 
-                const layers = getLayersForSources(sourcesRef.current);
-
-                if (dragging.current) {
-                    // TODO: do some other things
-                    return;
-                }
-
                 const {
                     point,
                     lngLat,
                 } = data;
 
+                if (dragging.current) {
+                    const { layerName } = dragging.current;
+                    const layers = getLayersForSources(sourcesRef.current);
+                    const layer = findLayerFromLayers(layers, layerName);
+
+                    if (layer && layer.onDrag) {
+                        layer.onDrag(dragging.current, lngLat, point, map);
+                    }
+                    // TODO: do some other things
+                    return;
+                }
+
+                const layers = getLayersForSources(sourcesRef.current);
                 const interactiveLayerKeys = layers
-                    .filter((layer) => !!layer.onClick || !!layer.onDoubleClick || !!layer.onDrag)
+                    .filter((layer) => (
+                        !!layer.onClick || !!layer.onDoubleClick || !!layer.onDrag
+                    ))
                     .map((layer) => layer.layerKey);
                 const interactiveFeatures = map.queryRenderedFeatures(
                     point,

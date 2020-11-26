@@ -1,3 +1,9 @@
+interface Dragging {
+    id: string | number | undefined;
+    layerName: string;
+    sourceName: string;
+}
+
 export interface Layer {
     name: string;
     destroy: () => void;
@@ -24,13 +30,13 @@ export interface Layer {
     onMouseLeave?: (map: mapboxgl.Map) => void;
 
     onDrag?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
+        feature: Dragging,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
         map: mapboxgl.Map,
     ) => void;
     onDragEnd?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
+        feature: Dragging,
         lngLat: mapboxgl.LngLat,
         point: mapboxgl.Point,
         map: mapboxgl.Map,
@@ -52,5 +58,6 @@ export type Sources = Obj<Source>;
 export interface Draw {
     getMode: () => string;
     delete: (idList: string | string[]) => void;
+    // eslint-disable-next-line @typescript-eslint/ban-types
     set: (featureCollection: object) => void;
 }

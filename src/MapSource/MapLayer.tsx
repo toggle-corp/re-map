@@ -18,6 +18,12 @@ type Paint = mapboxgl.BackgroundPaint
 | mapboxgl.HeatmapPaint
 | mapboxgl.HillshadePaint;
 
+interface Dragging {
+    id: string | number | undefined;
+    layerName: string;
+    sourceName: string;
+}
+
 interface Props {
     layerKey: string;
     layerOptions: Omit<mapboxgl.Layer, 'id'>;
@@ -43,6 +49,18 @@ interface Props {
     onMouseLeave?: (map: mapboxgl.Map) => void;
     beneath?: string;
     onAnimationFrame?: (timestamp: number) => Paint | undefined;
+    onDrag?: (
+        feature: Dragging,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+        map: mapboxgl.Map,
+    ) => void;
+    onDragEnd?: (
+        feature: Dragging,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+        map: mapboxgl.Map,
+    ) => void;
 }
 
 function removeUndefined<T extends Record<string, unknown>>(obj: T) {
@@ -62,6 +80,8 @@ const MapLayer = (props: Props) => {
         onClick,
         onDoubleClick,
         onMouseEnter,
+        onDrag,
+        onDragEnd,
         onMouseLeave,
         beneath,
         onAnimationFrame,
@@ -148,12 +168,15 @@ const MapLayer = (props: Props) => {
                     onDoubleClick,
                     onMouseEnter,
                     onMouseLeave,
+                    onDrag,
+                    onDragEnd,
                 }),
             );
         },
         [
             map, sourceKey, layerKey,
             onClick, onDoubleClick, onMouseEnter, onMouseLeave,
+            onDrag, onDragEnd,
             setLayer,
         ],
     );

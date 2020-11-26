@@ -1,6 +1,6 @@
 {
     "name": "@togglecorp/re-map",
-    "version": "0.0.2",
+    "version": "0.1.0",
     "description": "MapboxGL JS wrapper for React",
     "files": [
         "/build"

@@ -29,7 +29,8 @@ interface Props {
     onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw) => void;
     onModeChange?: (mode: Mode, draw: Draw) => void;
 
-    drawOptions: object; // FIXME
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    drawOptions: object;
     drawPosition?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left'; // FIXME
     disabled?: boolean;
 }

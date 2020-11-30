@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
 
 import { getLayerName } from './utils';
-import { Layer, Sources, Source } from './type';
+import { Layer, Sources, Source, Dragging } from './type';
 import { MapChildContext } from './context';
 
 const UNSUPPORTED_BROWSER = !mapboxgl.supported();
@@ -12,12 +12,12 @@ if (TOKEN) {
     mapboxgl.accessToken = TOKEN;
 }
 
-type Position = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-
 interface LastIn {
     id: string | number | undefined;
     layerName: string;
+    // NOTE: may not need to use these two below
     sourceName: string;
+    // NOTE: sourceLayer may never be defined for our usecase
     sourceLayer: string | undefined;
 }
 
@@ -48,16 +48,18 @@ function getLayersForSources(sources: Sources) {
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop() {}
 
+type Pos = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+
 interface Props {
     mapStyle: mapboxgl.MapboxOptions['style'];
     mapOptions: Omit<mapboxgl.MapboxOptions, 'style' | 'container'>;
 
     scaleControlShown: boolean;
-    scaleControlPosition?: Position;
+    scaleControlPosition?: Pos;
     scaleControlOptions?: ConstructorParameters<typeof mapboxgl.ScaleControl>[0];
 
     navControlShown: boolean;
-    navControlPosition?: Position;
+    navControlPosition?: Pos;
     navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
 
     debug?: boolean;
@@ -92,6 +94,7 @@ function Map(props: Props) {
     const paddingRef = useRef<number | mapboxgl.PaddingOptions | undefined>();
     const durationRef = useRef<number | undefined>();
 
+    const dragging = useRef<Dragging | undefined>(undefined);
     const lastIn = useRef<LastIn | undefined>(undefined);
     const mapDestroyedRef = useRef(false);
     const sourcesRef = useRef<Sources>({});
@@ -118,6 +121,7 @@ function Map(props: Props) {
                 console.error('No Mapboxgl support.');
                 return noop;
             }
+
             const { current: mapContainer } = mapContainerRef;
             if (!mapContainer) {
                 console.error('No container found.');
@@ -156,9 +160,76 @@ function Map(props: Props) {
             }, 200);
             */
 
+            const handleMouseDown = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+                const { current: map } = mapRef;
+                if (!map) {
+                    return;
+                }
+
+                if (dragging.current) {
+                    dragging.current = undefined;
+                    mapboxglMap.getCanvas().style.cursor = '';
+                }
+
+                const { point } = data;
+
+                const layers = getLayersForSources(sourcesRef.current);
+                const draggableLayerKeys = layers
+                    .filter((layer) => !!layer.onDrag)
+                    .map((layer) => layer.layerKey);
+                const draggableFeatures = map.queryRenderedFeatures(
+                    point,
+                    { layers: draggableLayerKeys },
+                );
+
+                if (draggableFeatures.length <= 0) {
+                    console.warn('No draggable layer found.');
+                    return;
+                }
+                const firstFeature = draggableFeatures[0];
+                dragging.current = {
+                    id: firstFeature.id,
+                    layerName: firstFeature.layer.id,
+                    sourceName: firstFeature.source,
+                    // sourceLayer: firstFeature.sourceLayer,
+                };
+                mapboxglMap.getCanvas().style.cursor = 'grabbing';
+                data.preventDefault();
+            };
+
+            const handleMouseUp = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+                const { current: map } = mapRef;
+                if (!map) {
+                    return;
+                }
+                if (!dragging.current) {
+                    return;
+                }
+                const {
+                    point,
+                    lngLat,
+                } = data;
+
+                const { layerName } = dragging.current;
+                const layers = getLayersForSources(sourcesRef.current);
+                const layer = findLayerFromLayers(layers, layerName);
+
+                if (layer && layer.onDragEnd) {
+                    layer.onDragEnd(dragging.current, lngLat, point, map);
+                }
+                // set dragging false
+                dragging.current = undefined;
+                mapboxglMap.getCanvas().style.cursor = '';
+            };
+
             const handleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
                 const { current: map } = mapRef;
                 if (!map) {
+                    return;
+                }
+                if (dragging.current) {
+                    dragging.current = undefined;
+                    mapboxglMap.getCanvas().style.cursor = '';
                     return;
                 }
 
@@ -197,6 +268,11 @@ function Map(props: Props) {
             const handleDoubleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
                 const { current: map } = mapRef;
                 if (!map) {
+                    return;
+                }
+                if (dragging.current) {
+                    dragging.current = undefined;
+                    mapboxglMap.getCanvas().style.cursor = '';
                     return;
                 }
 
@@ -238,15 +314,28 @@ function Map(props: Props) {
                     return;
                 }
 
-                const layers = getLayersForSources(sourcesRef.current);
-
                 const {
                     point,
                     lngLat,
                 } = data;
 
+                if (dragging.current) {
+                    const { layerName } = dragging.current;
+                    const layers = getLayersForSources(sourcesRef.current);
+                    const layer = findLayerFromLayers(layers, layerName);
+
+                    if (layer && layer.onDrag) {
+                        layer.onDrag(dragging.current, lngLat, point, map);
+                    }
+                    // TODO: do some other things
+                    return;
+                }
+
+                const layers = getLayersForSources(sourcesRef.current);
                 const interactiveLayerKeys = layers
-                    .filter((layer) => !!layer.onClick || !!layer.onDoubleClick)
+                    .filter((layer) => (
+                        !!layer.onClick || !!layer.onDoubleClick || !!layer.onDrag
+                    ))
                     .map((layer) => layer.layerKey);
                 const interactiveFeatures = map.queryRenderedFeatures(
                     point,
@@ -370,6 +459,8 @@ function Map(props: Props) {
             mapboxglMap.on('dblclick', handleDoubleClick);
             mapboxglMap.on('mousemove', handleMouseMove);
             mapboxglMap.on('resize', handleResize);
+            mapboxglMap.on('mousedown', handleMouseDown);
+            mapboxglMap.on('mouseup', handleMouseUp);
 
             const destroy = () => {
                 // clearTimeout(timer);

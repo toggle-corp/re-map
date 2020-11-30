@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 
 import { getLayerName } from '../utils';
 import { SourceChildContext } from '../context';
+import { Dragging } from '../type';
 // import { Layer } from '../type';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -43,6 +44,18 @@ interface Props {
     onMouseLeave?: (map: mapboxgl.Map) => void;
     beneath?: string;
     onAnimationFrame?: (timestamp: number) => Paint | undefined;
+    onDrag?: (
+        feature: Dragging,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+        map: mapboxgl.Map,
+    ) => void;
+    onDragEnd?: (
+        feature: Dragging,
+        lngLat: mapboxgl.LngLat,
+        point: mapboxgl.Point,
+        map: mapboxgl.Map,
+    ) => void;
 }
 
 function removeUndefined<T extends Record<string, unknown>>(obj: T) {
@@ -62,6 +75,8 @@ const MapLayer = (props: Props) => {
         onClick,
         onDoubleClick,
         onMouseEnter,
+        onDrag,
+        onDragEnd,
         onMouseLeave,
         beneath,
         onAnimationFrame,
@@ -148,12 +163,15 @@ const MapLayer = (props: Props) => {
                     onDoubleClick,
                     onMouseEnter,
                     onMouseLeave,
+                    onDrag,
+                    onDragEnd,
                 }),
             );
         },
         [
             map, sourceKey, layerKey,
             onClick, onDoubleClick, onMouseEnter, onMouseLeave,
+            onDrag, onDragEnd,
             setLayer,
         ],
     );
@@ -180,7 +198,7 @@ const MapLayer = (props: Props) => {
     );
 
     // Handle layout change
-    // TODO: dont' call in first render
+    // TODO: don't call in first render
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey || !layout) {

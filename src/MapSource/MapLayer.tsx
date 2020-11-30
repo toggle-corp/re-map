@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 
 import { getLayerName } from '../utils';
 import { SourceChildContext } from '../context';
+import { Dragging } from '../type';
 // import { Layer } from '../type';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -17,12 +18,6 @@ type Paint = mapboxgl.BackgroundPaint
 | mapboxgl.CirclePaint
 | mapboxgl.HeatmapPaint
 | mapboxgl.HillshadePaint;
-
-interface Dragging {
-    id: string | number | undefined;
-    layerName: string;
-    sourceName: string;
-}
 
 interface Props {
     layerKey: string;
@@ -203,7 +198,7 @@ const MapLayer = (props: Props) => {
     );
 
     // Handle layout change
-    // TODO: dont' call in first render
+    // TODO: don't call in first render
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey || !layout) {

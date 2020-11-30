@@ -1,4 +1,4 @@
-interface Dragging {
+export interface Dragging {
     id: string | number | undefined;
     layerName: string;
     sourceName: string;

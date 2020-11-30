@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import produce from 'immer';
 
 import { getLayerName } from './utils';
-import { Layer, Sources, Source } from './type';
+import { Layer, Sources, Source, Dragging } from './type';
 import { MapChildContext } from './context';
 
 const UNSUPPORTED_BROWSER = !mapboxgl.supported();
@@ -19,13 +19,6 @@ interface LastIn {
     sourceName: string;
     // NOTE: sourceLayer may never be defined for our usecase
     sourceLayer: string | undefined;
-}
-
-interface Dragging {
-    id: string | number | undefined;
-    layerName: string;
-    // NOTE: may not need to use these two below
-    sourceName: string;
 }
 
 interface ExtendedLayer extends Layer {
@@ -168,7 +161,6 @@ function Map(props: Props) {
             */
 
             const handleMouseDown = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
-                console.warn('Mouse is down', dragging.current);
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
@@ -206,7 +198,6 @@ function Map(props: Props) {
             };
 
             const handleMouseUp = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
-                console.warn('Mouse is up', dragging.current);
                 const { current: map } = mapRef;
                 if (!map) {
                     return;

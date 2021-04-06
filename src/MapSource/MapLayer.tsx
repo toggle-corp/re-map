@@ -58,7 +58,8 @@ interface Props {
     ) => void;
 }
 
-function removeUndefined<T extends Record<string, unknown>>(obj: T) {
+// eslint-disable-next-line @typescript-eslint/ban-types
+function removeUndefined<T extends object>(obj: T) {
     const cleanNewLayerOptions: any = {};
     Object.keys(obj).forEach((key) => {
         if (key && (obj as any)[key]) {

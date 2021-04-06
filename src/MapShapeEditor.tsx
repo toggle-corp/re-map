@@ -27,7 +27,7 @@ interface Props {
     onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: MapboxDraw) => void;
     onModeChange?: (mode: Mode, draw: MapboxDraw) => void;
 
-    drawOptions: Record<string, unknown>;
+    drawOptions: Record<string, unknown>; // FIXME
     drawPosition?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left'; // FIXME
     disabled?: boolean;
 }

@@ -182,7 +182,6 @@ const MapLayer = (props: Props) => {
         filter,
         layout,
     } = layerOptions;
-
     // Handle paint change
     // TODO: don't call in first render
     useEffect(

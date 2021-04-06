@@ -69,7 +69,12 @@ const MapTooltip = (props: Props) => {
                 return noop;
             }
 
-            popupRef.current = new mapboxgl.Popup(initialTooltipOptions)
+            popupRef.current = new mapboxgl.Popup({
+                closeOnClick: false,
+                closeButton: false,
+                offset: 8,
+                maxWidth: '480px',
+            })
                 .setDOMContent(tooltipContainerRef.current)
                 .addTo(map);
 

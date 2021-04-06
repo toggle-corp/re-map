@@ -45,6 +45,7 @@ interface Props {
     onAnimationFrame?: (timestamp: number) => Paint | undefined;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function removeUndefined<T extends object>(obj: T) {
     const cleanNewLayerOptions: any = {};
     Object.keys(obj).forEach((key) => {

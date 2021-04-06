@@ -34,7 +34,7 @@ function findLayerFromLayers(layers: ExtendedLayer[], layerKey: string) {
 
 function getLayersForSources(sources: Sources) {
     const layers = Object.entries(sources)
-        .filter(([_, source]) => !!source.layers)
+        .filter(([, source]) => !!source.layers)
         .map(([sourceKey, source]) => (
             Object.entries(source.layers)
                 .map(([layerKey, layer]) => ({

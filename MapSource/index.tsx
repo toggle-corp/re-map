@@ -26,7 +26,7 @@ interface Props {
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
-    createMarkerElement?: (properties: object) => HTMLElement;
+    createMarkerElement?: (properties: Record<string, unknown>) => HTMLElement;
 }
 
 const MapSource = (props: Props) => {

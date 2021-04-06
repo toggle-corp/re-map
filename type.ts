@@ -39,5 +39,5 @@ export type Sources = Obj<Source>;
 export interface Draw {
     getMode: () => string;
     delete: (idList: string | string[]) => void;
-    set: (featureCollection: object) => void;
+    set: (featureCollection: Record<string, unknown>) => void;
 }

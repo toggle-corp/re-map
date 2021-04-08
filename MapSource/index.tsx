@@ -171,45 +171,6 @@ const MapSource = (props: Props) => {
         [map, createMarkerElement, sourceKey],
     );
 
-    const onMouseEnter = useCallback(() => {
-        if (!map || !createMarkerElement || !sourceKey) {
-            return;
-        }
-        const popup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-        });
-        const newMarkers: Obj<mapboxgl.Marker> = {};
-        const features = map.querySourceFeatures(sourceKey);
-        const {
-            geometry: {
-                coordinates,
-            },
-            properties,
-        } = features[0];
-        map.on('mouseenter', 'places', function (e) {
-            // Change the cursor style as a UI indicator.
-            map.getCanvas().style.cursor = 'pointer';
-            // const features = e.features;
-            if (!features || features.length <= 0) {
-                return;
-            }
-            const coordinates = features[0].geometry.coordinates.slice();
-            const description = 'features[0].properties.description';
-             
-            // Ensure that if the map is zoomed out such that multiple
-            // copies of the feature are visible, the popup appears
-            // over the copy being pointed to.
-            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-            }
-             
-            // Populate the popup and set its coordinates
-            // based on the feature found.
-            popup.setLngLat(coordinates).setHTML(description).addTo(map);
-            });
-    }, [map]);
-
     useEffect(
         () => {
             if (!map || !sourceKey || !mapStyle || !geoJson || !createMarkerElement) {
@@ -227,13 +188,11 @@ const MapSource = (props: Props) => {
             */
             map.on('move', updateMarkers);
             map.on('moveend', updateMarkers);
-            map.on('mouseenter', onMouseEnter);
 
             return () => {
                 // map.off('data', handleData);
-                map.on('move', updateMarkers);
-                map.on('moveend', updateMarkers);
-                map.on('mouseenter', onMouseEnter);
+                map.off('move', updateMarkers);
+                map.off('moveend', updateMarkers);
             };
         },
         [map, sourceKey, mapStyle, createMarkerElement, updateMarkers, geoJson],

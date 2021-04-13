@@ -157,7 +157,7 @@ const MapLayer = (props: Props) => {
             }
             setLayer(
                 layerKey,
-                (layer) => layer && ({
+                layer => layer && ({
                     ...layer,
                     onClick,
                     onDoubleClick,

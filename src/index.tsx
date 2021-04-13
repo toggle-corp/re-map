@@ -175,8 +175,8 @@ function Map(props: Props) {
 
                 const layers = getLayersForSources(sourcesRef.current);
                 const draggableLayerKeys = layers
-                    .filter((layer) => !!layer.onDrag)
-                    .map((layer) => layer.layerKey);
+                    .filter(layer => !!layer.onDrag)
+                    .map(layer => layer.layerKey);
                 const draggableFeatures = map.queryRenderedFeatures(
                     point,
                     { layers: draggableLayerKeys },

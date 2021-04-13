@@ -58,6 +58,5 @@ export type Sources = Obj<Source>;
 export interface Draw {
     getMode: () => string;
     delete: (idList: string | string[]) => void;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    set: (featureCollection: object) => void;
+    set: (featureCollection: Record<string, unknown>) => void;
 }

@@ -4,8 +4,6 @@ import { useContext, useEffect, useState, useRef } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { _cs } from '@togglecorp/fujs';
 
-import { Draw } from './type';
-
 import { MapChildContext } from './context';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -24,13 +22,12 @@ interface ModeChangeEvent {
 interface Props {
     geoJsons: mapboxgl.MapboxGeoJSONFeature[];
 
-    onCreate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw) => void;
-    onDelete?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw) => void;
-    onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: Draw) => void;
-    onModeChange?: (mode: Mode, draw: Draw) => void;
+    onCreate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: MapboxDraw) => void;
+    onDelete?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: MapboxDraw) => void;
+    onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: MapboxDraw) => void;
+    onModeChange?: (mode: Mode, draw: MapboxDraw) => void;
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    drawOptions: object;
+    drawOptions: Record<string, unknown>;
     drawPosition?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left'; // FIXME
     disabled?: boolean;
 }
@@ -67,7 +64,7 @@ const MapShapeEditor = (props: Props) => {
     // const [initialGeoJsons] = useState(geoJsons);
     const [initialDrawOptions] = useState(drawOptions);
     const [initialDrawPosition] = useState(drawPosition);
-    const drawRef = useRef<Draw | undefined>();
+    const drawRef = useRef<MapboxDraw | undefined>();
 
     // Create and destroy control
     useEffect(
@@ -88,7 +85,7 @@ const MapShapeEditor = (props: Props) => {
             //     draw.add(geoJson);
             // });
 
-            drawRef.current = draw as Draw;
+            drawRef.current = draw;
 
             return () => {
                 if (!isMapDestroyed()) {
@@ -227,7 +224,7 @@ const MapShapeEditor = (props: Props) => {
                 );
             } else {
                 const classNames = mapContainerRef.current.className.split(' ');
-                const filteredClassNames = classNames.filter((name) => name !== disabledClassName);
+                const filteredClassNames = classNames.filter(name => name !== disabledClassName);
                 mapContainerRef.current.className = _cs(...filteredClassNames);
             }
         },

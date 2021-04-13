@@ -1,6 +1,6 @@
 declare module '@mapbox/mapbox-gl-draw' {
-    import { Feature, FeatureCollection } from 'geojson'
-    import { IControl } from 'mapbox-gl'
+    import { Feature, FeatureCollection } from 'geojson';
+    import { IControl } from 'mapbox-gl';
 
     export interface IMapboxDrawControls {
         point?: boolean,
@@ -12,7 +12,6 @@ declare module '@mapbox/mapbox-gl-draw' {
     }
 
     class MapboxDraw implements IControl {
-
         getDefaultPosition: () => string
 
         constructor(options?: {
@@ -23,13 +22,13 @@ declare module '@mapbox/mapbox-gl-draw' {
             clickBuffer?: number,
             touchBuffer?: number,
             controls?: IMapboxDrawControls,
-            styles?: object[],
-            modes?: object,
+            styles?: Record<string, unknown>[],
+            modes?: Record<string, unknown>,
             defaultMode?: string,
             userProperties?: boolean
         });
 
-        public add(geojson: object): string[]
+        public add(geojson: Record<string, unknown>): string[]
 
         public get(featureId: string): Feature | undefined
 
@@ -57,14 +56,13 @@ declare module '@mapbox/mapbox-gl-draw' {
 
         public getMode(): string
 
-        public changeMode(mode: string, options?: object): this
+        public changeMode(mode: string, options?: Record<string, unknown>): this
 
         public setFeatureProperty(featureId: string, property: string, value: any): this
 
         onAdd(map: mapboxgl.Map): HTMLElement
 
         onRemove(map: mapboxgl.Map): any
-
     }
 
     export default MapboxDraw;

@@ -7,10 +7,6 @@ import { Layer, Sources, Source, Dragging } from './type';
 import { MapChildContext } from './context';
 
 const UNSUPPORTED_BROWSER = !mapboxgl.supported();
-const { REACT_APP_MAPBOX_ACCESS_TOKEN: TOKEN } = process.env;
-if (TOKEN) {
-    mapboxgl.accessToken = TOKEN;
-}
 
 interface LastIn {
     id: string | number | undefined;
@@ -90,7 +86,7 @@ function Map(props: Props) {
     const [mapStyle, setMapStyle] = useState<mapboxgl.MapboxOptions['style']>(undefined);
     const [loaded, setLoaded] = useState<boolean>(false);
 
-    const boundsRef = useRef<[number, number, number, number] | undefined>();
+    const boundsRef = useRef<mapboxgl.LngLatBoundsLike | undefined>();
     const paddingRef = useRef<number | mapboxgl.PaddingOptions | undefined>();
     const durationRef = useRef<number | undefined>();
 
@@ -103,7 +99,7 @@ function Map(props: Props) {
 
     const setBounds = useCallback(
         (
-            bounds: [number, number, number, number] | undefined,
+            bounds: mapboxgl.LngLatBoundsLike | undefined,
             padding: number | mapboxgl.PaddingOptions | undefined,
             duration: number | undefined,
         ) => {
@@ -182,7 +178,7 @@ function Map(props: Props) {
                     { layers: draggableLayerKeys },
                 );
 
-                if (draggableFeatures.length <= 0) {
+                if (draggableFeatures.length <= 0 && initialDebug) {
                     console.warn('No draggable layer found.');
                     return;
                 }
@@ -249,7 +245,7 @@ function Map(props: Props) {
                     { layers: clickableLayerKeys },
                 );
 
-                if (clickableFeatures.length <= 0) {
+                if (clickableFeatures.length <= 0 && initialDebug) {
                     console.warn('No clickable layer found.');
                     // TODO: add a global handler
                     return;
@@ -292,7 +288,7 @@ function Map(props: Props) {
                     { layers: clickableLayerKeys },
                 );
 
-                if (clickableFeatures.length <= 0) {
+                if (clickableFeatures.length <= 0 && initialDebug) {
                     console.warn('No clickable layer found.');
                     // TODO: add a global handler
                     return;
@@ -470,6 +466,8 @@ function Map(props: Props) {
                 mapboxglMap.off('mousemove', handleMouseMove);
                 mapboxglMap.off('resize', handleResize);
 
+                // FIXME: looks like mousedown and mouseup aren't handled
+
                 sourcesRef.current = {};
                 lastIn.current = undefined;
                 mapDestroyedRef.current = true;
@@ -625,6 +623,11 @@ export default Map;
 export * from './utils';
 export * from './type';
 export * from './context';
+
+export function setMapboxToken(token: string) {
+    mapboxgl.accessToken = token;
+}
+
 export { default as MapTooltip } from './MapTooltip';
 export { default as MapSource } from './MapSource';
 export { default as MapState } from './MapSource/MapState';
@@ -634,3 +637,4 @@ export { default as MapOrder } from './MapOrder';
 export { default as MapImage } from './MapImage';
 export { default as MapContainer } from './MapContainer';
 export { default as MapBounds } from './MapBounds';
+export { default as MapCenter } from './MapCenter';

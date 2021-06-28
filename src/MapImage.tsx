@@ -41,7 +41,7 @@ const MapImage = (props: Props) => {
             }
 
             if (map.hasImage(initialName)) {
-                console.warn(`An image with name '${initialName}' already exists`);
+                console.error(`An image with name '${initialName}' already exists`);
             } else if (initialUrl) {
                 if (onLoad) {
                     onLoad(false);

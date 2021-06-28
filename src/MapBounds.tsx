@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { MapChildContext } from './context';
 
 interface Props {
-    bounds?: [number, number, number, number];
+    bounds: mapboxgl.LngLatBoundsLike | undefined;
     padding: number | mapboxgl.PaddingOptions;
     duration: number;
 }
@@ -24,16 +24,11 @@ const MapBounds = (props: Props) => {
             if (!map || !bounds) {
                 return;
             }
-            // NOTE: just to be safe here
-            if (bounds.length < 4) {
-                return;
-            }
 
-            const [fooLon, fooLat, barLon, barLat] = bounds;
             setBounds(bounds, padding, initialDuration);
 
             map.fitBounds(
-                [[fooLon, fooLat], [barLon, barLat]],
+                bounds,
                 {
                     padding,
                     duration: initialDuration,

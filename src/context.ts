@@ -14,7 +14,7 @@ interface MapChildState {
     isMapDestroyed: () => boolean;
 
     setBounds: (
-        bounds: [number, number, number, number] | undefined,
+        bounds: mapboxgl.LngLatBoundsLike | undefined,
         padding: number | mapboxgl.PaddingOptions | undefined,
         duration: number | undefined,
     ) => void;

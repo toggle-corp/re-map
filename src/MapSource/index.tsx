@@ -13,7 +13,7 @@ const noop = () => {};
 function useCounter(initialValue = 0): [() => void, number] {
     const [value, updateValue] = useState(initialValue);
     const increaseValue = useCallback(() => {
-        updateValue(v => v + 1);
+        updateValue((v) => v + 1);
     }, []);
     return [increaseValue, value];
 }

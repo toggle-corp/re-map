@@ -2,23 +2,17 @@ module.exports = (api) => {
     api.cache(false);
     return {
         'presets': [
-            require.resolve(
-                '@babel/preset-env',
-                {
-                    'useBuiltIns': false,
-                }
-            ),
+            require.resolve('@babel/preset-env'),
             require.resolve('@babel/preset-react'),
             require.resolve('@babel/preset-typescript'),
         ],
 
         'plugins': [
             // Reuse babel's injected headers
-            require.resolve('@babel/plugin-transform-runtime'),
-            [require('babel-plugin-polyfill-corejs3'), {
-                "method": "usage-pure",
-                // "targets": { "firefox": 42 }
-            }],
+            [
+                require.resolve('@babel/plugin-transform-runtime'),
+                { corejs: 3 },
+            ],
 
             require.resolve('@babel/plugin-proposal-do-expressions'),
             require.resolve('@babel/plugin-proposal-nullish-coalescing-operator'),

@@ -190,8 +190,8 @@ const MapSource = (props: Props) => {
 
             return () => {
                 // map.off('data', handleData);
-                map.on('move', updateMarkers);
-                map.on('moveend', updateMarkers);
+                map.off('move', updateMarkers);
+                map.off('moveend', updateMarkers);
             };
         },
         [map, sourceKey, mapStyle, createMarkerElement, updateMarkers, geoJson],

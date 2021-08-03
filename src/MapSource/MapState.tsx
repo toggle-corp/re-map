@@ -34,6 +34,7 @@ function MapState<T>(props: Props<T>) {
     const [initialDebug] = useState(debug);
 
     const prevAttributes = usePrevious(attributes, []);
+    const prevSourceLayer = usePrevious(sourceLayer, undefined);
 
     // Handle attributes change
     useEffect(
@@ -90,6 +91,31 @@ function MapState<T>(props: Props<T>) {
             if (!map || !sourceKey) {
                 return;
             }
+            if (sourceLayer !== prevSourceLayer) {
+                prevAttributes.forEach((attribute) => {
+                    map.removeFeatureState(
+                        {
+                            id: attribute.id,
+                            source: sourceKey,
+                            sourceLayer: prevSourceLayer,
+                        },
+                        attributeKey,
+                    );
+                });
+
+                attributes.forEach((attribute) => {
+                    map.setFeatureState(
+                        {
+                            id: attribute.id,
+                            source: sourceKey,
+                            sourceLayer,
+                        },
+                        { [attributeKey]: attribute.value },
+                    );
+                });
+                return;
+            }
+
             const toBeDeleted = difference(new Set(prevAttributes), new Set(attributes));
             const toBeAddedModified = difference(new Set(attributes), toBeDeleted);
 
@@ -114,7 +140,7 @@ function MapState<T>(props: Props<T>) {
                 );
             });
         },
-        [map, sourceKey, attributes, prevAttributes, attributeKey, sourceLayer],
+        [map, sourceKey, attributes, prevAttributes, attributeKey, sourceLayer, prevSourceLayer],
     );
 
     return null;

@@ -175,8 +175,8 @@ function Map(props: Props) {
 
                 const layers = getLayersForSources(sourcesRef.current);
                 const draggableLayerKeys = layers
-                    .filter(layer => !!layer.onDrag)
-                    .map(layer => layer.layerKey);
+                    .filter((layer) => !!layer.onDrag)
+                    .map((layer) => layer.layerKey);
                 const draggableFeatures = map.queryRenderedFeatures(
                     point,
                     { layers: draggableLayerKeys },
@@ -482,6 +482,10 @@ function Map(props: Props) {
 
             return destroy;
         },
+        // FIXME: mapOptions, mapStyleFromProps, navControlOptions,
+        // navControlPosition, navControlShown, scaleControlOptions,
+        // scaleControlPosition, scaleControlShown
+        // are dependencies that are not added on the list of deps
         [initialDebug],
     );
 

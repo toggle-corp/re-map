@@ -1,13 +1,15 @@
 declare module '@mapbox/mapbox-gl-draw' {
-    import { Feature, FeatureCollection } from 'geojson';
     import { IControl } from 'mapbox-gl';
 
     export interface IMapboxDrawControls {
         point?: boolean,
+        // eslint-disable-next-line camelcase
         line_string?: boolean,
         polygon?: boolean
         trash?: boolean,
+        // eslint-disable-next-line camelcase
         combine_features?: boolean,
+        // eslint-disable-next-line camelcase
         uncombine_features?: boolean
     }
 
@@ -30,23 +32,23 @@ declare module '@mapbox/mapbox-gl-draw' {
 
         public add(geojson: Record<string, unknown>): string[]
 
-        public get(featureId: string): Feature | undefined
+        public get(featureId: string): GeoJSON.Feature | undefined
 
         public getFeatureIdsAt(point: { x: number, y: number }): string[]
 
         public getSelectedIds(): string[]
 
-        public getSelected(): FeatureCollection
+        public getSelected(): GeoJSON.FeatureCollection
 
-        public getSelectedPoints(): FeatureCollection
+        public getSelectedPoints(): GeoJSON.FeatureCollection
 
-        public getAll(): FeatureCollection
+        public getAll(): GeoJSON.FeatureCollection
 
         public delete(ids: string | string[]): this
 
         public deleteAll(): this
 
-        public set(featureCollection: FeatureCollection): string[]
+        public set(featureCollection: GeoJSON.FeatureCollection): string[]
 
         public trash(): this
 

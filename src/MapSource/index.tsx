@@ -101,9 +101,10 @@ const MapSource = (props: Props) => {
     );
 
     // Handle geoJson change
+    // TODO: don't call in first render
     useEffect(
         () => {
-            if (!map || !sourceKey || !geoJson || !mapStyle || geoJson === initialGeoJson) {
+            if (!map || !sourceKey || !geoJson || !mapStyle) {
                 return;
             }
             const source = map.getSource(sourceKey);

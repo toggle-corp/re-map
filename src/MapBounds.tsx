@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 
 import { MapChildContext } from './context';
 
@@ -12,11 +12,18 @@ const MapBounds = (props: Props) => {
     const { map, setBounds } = useContext(MapChildContext);
     const {
         padding,
-        duration,
+        duration: durationFromProps,
         bounds,
     } = props;
 
-    const [initialDuration] = useState(duration);
+    const durationRef = useRef(durationFromProps);
+
+    useEffect(
+        () => {
+            durationRef.current = durationFromProps;
+        },
+        [durationFromProps],
+    );
 
     // Handle change in bounds
     useEffect(
@@ -25,17 +32,19 @@ const MapBounds = (props: Props) => {
                 return;
             }
 
-            setBounds(bounds, padding, initialDuration);
+            const duration = durationRef.current;
+
+            setBounds(bounds, padding, duration);
 
             map.fitBounds(
                 bounds,
                 {
                     padding,
-                    duration: initialDuration,
+                    duration,
                 },
             );
         },
-        [map, bounds, padding, initialDuration, setBounds],
+        [map, bounds, padding, setBounds],
     );
 
     return null;

@@ -11,6 +11,7 @@
     "scripts": {
         "prepare": "install-peers",
         "build": "rollup -c && tsc --project tsconfig-typings.json",
+        "prepack": "yarn build",
         "watch": "rollup -c -w",
         "typecheck": "tsc",
         "lint": "eslint 'src/**/*.[tj]s?(x)'"

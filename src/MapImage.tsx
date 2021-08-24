@@ -19,7 +19,12 @@ type Img = HTMLImageElement
 | ImageData;
 
 const MapImage = (props: Props) => {
-    const { map, isMapDestroyed, mapStyle } = useContext(MapChildContext);
+    const {
+        map,
+        mapStyle,
+        isMapDestroyed,
+    } = useContext(MapChildContext);
+
     const {
         name,
         url,
@@ -33,7 +38,6 @@ const MapImage = (props: Props) => {
     const [initialImage] = useState(image);
     const [initialImageOptions] = useState(imageOptions);
 
-    // Handle change in bounds
     useEffect(
         () => {
             if (!map || !mapStyle) {

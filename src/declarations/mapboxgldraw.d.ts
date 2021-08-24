@@ -60,10 +60,12 @@ declare module '@mapbox/mapbox-gl-draw' {
 
         public changeMode(mode: string, options?: Record<string, unknown>): this
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         public setFeatureProperty(featureId: string, property: string, value: any): this
 
         onAdd(map: mapboxgl.Map): HTMLElement
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onRemove(map: mapboxgl.Map): any
     }
 

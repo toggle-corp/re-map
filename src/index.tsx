@@ -638,10 +638,6 @@ export * from './utils';
 export * from './type';
 export * from './context';
 
-export function setMapboxToken(token: string) {
-    mapboxgl.accessToken = token;
-}
-
 export { default as MapTooltip } from './MapTooltip';
 export { default as MapSource } from './MapSource';
 export { default as MapState } from './MapSource/MapState';

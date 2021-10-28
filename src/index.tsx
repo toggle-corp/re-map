@@ -178,8 +178,10 @@ function Map(props: Props) {
                     { layers: draggableLayerKeys },
                 );
 
-                if (draggableFeatures.length <= 0 && initialDebug) {
-                    console.warn('No draggable layer found.');
+                if (draggableFeatures.length <= 0) {
+                    if (initialDebug) {
+                        console.warn('No draggable layer found.');
+                    }
                     return;
                 }
                 const firstFeature = draggableFeatures[0];
@@ -245,8 +247,10 @@ function Map(props: Props) {
                     { layers: clickableLayerKeys },
                 );
 
-                if (clickableFeatures.length <= 0 && initialDebug) {
-                    console.warn('No clickable layer found.');
+                if (clickableFeatures.length <= 0) {
+                    if (initialDebug) {
+                        console.warn('No clickable layer found.');
+                    }
                     // TODO: add a global handler
                     return;
                 }
@@ -288,8 +292,10 @@ function Map(props: Props) {
                     { layers: clickableLayerKeys },
                 );
 
-                if (clickableFeatures.length <= 0 && initialDebug) {
-                    console.warn('No clickable layer found.');
+                if (clickableFeatures.length <= 0) {
+                    if (initialDebug) {
+                        console.warn('No clickable layer found.');
+                    }
                     // TODO: add a global handler
                     return;
                 }

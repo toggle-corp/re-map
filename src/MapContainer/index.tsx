@@ -3,6 +3,10 @@ import React, { useContext, useEffect } from 'react';
 import { MapChildContext } from '../context';
 import useDimension from './useDimension';
 
+const style = {
+    padding: 0,
+};
+
 interface Props {
     className?: string;
 }
@@ -10,6 +14,7 @@ interface Props {
 const MapContainer = (props: Props) => {
     const { className } = props;
     const { mapContainerRef, map } = useContext(MapChildContext);
+
     const rect = useDimension(mapContainerRef);
 
     useEffect(
@@ -25,9 +30,7 @@ const MapContainer = (props: Props) => {
         <div
             ref={mapContainerRef}
             className={className}
-            style={{
-                padding: 0,
-            }}
+            style={style}
         />
     );
 };

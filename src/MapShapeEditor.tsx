@@ -61,7 +61,6 @@ const MapShapeEditor = (props: Props) => {
         mapContainerRef,
     } = useContext(MapChildContext);
 
-    // const [initialGeoJsons] = useState(geoJsons);
     const [initialDrawOptions] = useState(drawOptions);
     const [initialDrawPosition] = useState(drawPosition);
     const drawRef = useRef<MapboxDraw | undefined>();
@@ -79,11 +78,6 @@ const MapShapeEditor = (props: Props) => {
                 draw,
                 initialDrawPosition,
             );
-
-            // Load geojsons
-            // initialGeoJsons.forEach((geoJson) => {
-            //     draw.add(geoJson);
-            // });
 
             drawRef.current = draw;
 

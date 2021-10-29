@@ -60,9 +60,12 @@ interface Props {
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 function removeUndefined<T extends object>(obj: T) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cleanNewLayerOptions: any = {};
     Object.keys(obj).forEach((key) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (key && (obj as any)[key]) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             cleanNewLayerOptions[key] = (obj as any)[key];
         }
     });
@@ -182,6 +185,7 @@ const MapLayer = (props: Props) => {
         filter,
         layout,
     } = layerOptions;
+
     // Handle paint change
     // TODO: don't call in first render
     useEffect(

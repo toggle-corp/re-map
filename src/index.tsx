@@ -82,6 +82,14 @@ function Map(props: Props) {
     } = props;
 
     const [initialDebug] = useState(debug);
+    const [initialMapStyle] = useState(mapStyleFromProps);
+    const [initialMapOptions] = useState(mapOptions);
+    const [initialNavControlOptions] = useState(navControlOptions);
+    const [initialNavControlPosition] = useState(navControlPosition);
+    const [initialNavControlShown] = useState(navControlShown);
+    const [initialScaleControlOptions] = useState(scaleControlOptions);
+    const [initialScaleControlPosition] = useState(scaleControlPosition);
+    const [initialScaleControlShown] = useState(scaleControlShown);
 
     const [mapStyle, setMapStyle] = useState<mapboxgl.MapboxOptions['style']>(undefined);
     const [loaded, setLoaded] = useState<boolean>(false);
@@ -126,26 +134,26 @@ function Map(props: Props) {
 
             const mapboxglMap = new mapboxgl.Map({
                 container: mapContainer,
-                style: mapStyleFromProps,
+                style: initialMapStyle,
                 preserveDrawingBuffer: true,
-                ...mapOptions,
+                ...initialMapOptions,
             });
 
             mapRef.current = mapboxglMap;
             // FIXME: we shouldn't always set cursor to pointer
             // mapboxglMap.getCanvas().style.cursor = 'pointer';
 
-            if (scaleControlShown) {
-                const scale = new mapboxgl.ScaleControl(scaleControlOptions);
-                mapboxglMap.addControl(scale, scaleControlPosition);
+            if (initialScaleControlShown) {
+                const scale = new mapboxgl.ScaleControl(initialScaleControlOptions);
+                mapboxglMap.addControl(scale, initialScaleControlPosition);
             }
 
-            if (navControlShown) {
+            if (initialNavControlShown) {
                 // NOTE: don't we need to remove control on unmount?
-                const nav = new mapboxgl.NavigationControl(navControlOptions);
+                const nav = new mapboxgl.NavigationControl(initialNavControlOptions);
                 mapboxglMap.addControl(
                     nav,
-                    navControlPosition,
+                    initialNavControlPosition,
                 );
             }
 
@@ -442,14 +450,8 @@ function Map(props: Props) {
                 if (!boundsRef.current) {
                     return;
                 }
-                // NOTE: just to be safe here
-                if (boundsRef.current.length < 4) {
-                    return;
-                }
-
-                const [fooLon, fooLat, barLon, barLat] = boundsRef.current;
                 map.fitBounds(
-                    [[fooLon, fooLat], [barLon, barLat]],
+                    boundsRef.current,
                     {
                         padding: paddingRef.current,
                         duration: durationRef.current,
@@ -486,11 +488,17 @@ function Map(props: Props) {
 
             return destroy;
         },
-        // FIXME: mapOptions, mapStyleFromProps, navControlOptions,
-        // navControlPosition, navControlShown, scaleControlOptions,
-        // scaleControlPosition, scaleControlShown
-        // are dependencies that are not added on the list of deps
-        [initialDebug],
+        [
+            initialDebug,
+            initialMapStyle,
+            initialMapOptions,
+            initialNavControlOptions,
+            initialNavControlPosition,
+            initialNavControlShown,
+            initialScaleControlOptions,
+            initialScaleControlPosition,
+            initialScaleControlShown,
+        ],
     );
 
     // Handle style load and map ready
@@ -629,10 +637,6 @@ export default Map;
 export * from './utils';
 export * from './type';
 export * from './context';
-
-export function setMapboxToken(token: string) {
-    mapboxgl.accessToken = token;
-}
 
 export { default as MapTooltip } from './MapTooltip';
 export { default as MapSource } from './MapSource';

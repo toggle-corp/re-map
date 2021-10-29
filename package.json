@@ -1,6 +1,6 @@
 {
     "name": "@togglecorp/re-map",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "description": "MapboxGL JS wrapper for React",
     "files": [
         "/build"
@@ -10,7 +10,8 @@
     "typings": "build/index.d.ts",
     "scripts": {
         "prepare": "install-peers",
-        "build": "rollup -c && tsc --project tsconfig-typings.json",
+        "build": "rm -rf ./build && rollup -c && tsc --project tsconfig-typings.json",
+        "prepack": "yarn build",
         "watch": "rollup -c -w",
         "typecheck": "tsc",
         "lint": "eslint 'src/**/*.[tj]s?(x)'"

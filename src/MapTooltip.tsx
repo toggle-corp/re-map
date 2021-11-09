@@ -52,10 +52,10 @@ const MapTooltip = (props: Props) => {
     // Render react component in tooltip <div>
     useEffect(
         () => {
-            if (!map) {
+            if (!map || !tooltipContainerRef.current) {
                 return;
             }
-            ReactDOM.render(
+            ReactDOM.createPortal(
                 children,
                 tooltipContainerRef.current,
             );

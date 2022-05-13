@@ -26,7 +26,7 @@ interface Props {
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
-    createMarkerElement?: (properties: Record<string, unknown>) => HTMLElement;
+    createMarkerElement?: (properties: Record<string, unknown>, map?: mapboxgl.Map) => HTMLElement;
 }
 
 const MapSource = (props: Props) => {
@@ -146,7 +146,7 @@ const MapSource = (props: Props) => {
 
                 let marker = markers.current[clusterId];
                 if (!marker) {
-                    const el = createMarkerElement(properties);
+                    const el = createMarkerElement(properties, map);
                     marker = new mapboxgl.Marker({
                         element: el,
                     }).setLngLat(coordinates as mapboxgl.LngLatLike);

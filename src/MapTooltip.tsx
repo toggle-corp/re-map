@@ -28,26 +28,11 @@ const MapTooltip = (props: Props) => {
         trackPointer,
     } = props;
 
-    // const popupUpdateTimeoutRef = useRef<number | undefined>();
-    const tooltipContainerRef = useRef<HTMLDivElement | null>(null);
     const popupRef = useRef<mapboxgl.Popup | null>(null);
 
     const [initialTooltipOptions] = useState(tooltipOptions);
     const [initialTrackPointer] = useState(trackPointer);
     const [initialCoordinates] = useState(coordinates);
-
-    // Create tooltip <div>
-    useEffect(
-        () => {
-            tooltipContainerRef.current = document.createElement('div');
-            return () => {
-                if (tooltipContainerRef.current) {
-                    tooltipContainerRef.current.remove();
-                }
-            };
-        },
-        [],
-    );
 
     // Render react component in tooltip <div>
     useEffect(
@@ -55,9 +40,14 @@ const MapTooltip = (props: Props) => {
             if (!map) {
                 return;
             }
-            ReactDOM.render(
+            const elem = document.getElementsByClassName('THISISIT')[0];
+            if (!elem) {
+                return;
+            }
+
+            ReactDOM.createPortal(
                 children,
-                tooltipContainerRef.current,
+                elem,
             );
         },
         [map, children],
@@ -66,11 +56,11 @@ const MapTooltip = (props: Props) => {
     // Create mapbox popup and assign to tooltip <div>
     useEffect(
         () => {
-            if (!map || !tooltipContainerRef.current || hidden) {
+            if (!map || hidden) {
                 return noop;
             }
 
-            popupRef.current = new mapboxgl.Popup(initialTooltipOptions);
+            popupRef.current = new mapboxgl.Popup({ ...initialTooltipOptions, className: 'THISISIT' });
 
             if (initialCoordinates) {
                 popupRef.current.setLngLat(initialCoordinates);
@@ -79,29 +69,10 @@ const MapTooltip = (props: Props) => {
                 popupRef.current.trackPointer();
             }
 
-            popupRef.current.setDOMContent(tooltipContainerRef.current);
+            // popupRef.current.setDOMContent(tooltipContainerRef.current);
             popupRef.current.addTo(map);
 
-            /*
-            // NOTE: this is a fix for bad initial popup placement
-            popupUpdateTimeoutRef.current = window.setTimeout(
-                () => {
-                    if (popupRef.current) {
-                        // eslint-disable-next-line no-underscore-dangle
-                        popupRef.current._update();
-                    }
-                },
-                0,
-            );
-            */
-
             return () => {
-                /*
-                if (popupUpdateTimeoutRef.current) {
-                    window.clearTimeout(popupUpdateTimeoutRef.current);
-                }
-                */
-
                 if (popupRef.current) {
                     popupRef.current.remove();
                     popupRef.current = null;

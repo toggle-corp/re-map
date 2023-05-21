@@ -1,7 +1,12 @@
 import React, {
-    useContext, useEffect, useRef, useState,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+    useMemo,
+    ReactPortal,
 } from 'react';
-import ReactDOM from 'react-dom';
+import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 
 import { MapChildContext } from './context';
@@ -19,7 +24,7 @@ interface Props {
     trackPointer: boolean;
 }
 
-function MapPopup(props: Props) {
+function MapPopup(props: Props): ReactPortal {
     const { map } = useContext(MapChildContext);
     const {
         children,
@@ -30,8 +35,6 @@ function MapPopup(props: Props) {
         trackPointer = false,
     } = props;
 
-    // const popupUpdateTimeoutRef = useRef<number | undefined>();
-    const popupContainerRef = useRef<HTMLDivElement | null>(null);
     const popupRef = useRef<mapboxgl.Popup | null>(null);
 
     const [initialPopupOptions] = useState(popupOptions);
@@ -39,35 +42,15 @@ function MapPopup(props: Props) {
     const [initialCoordinates] = useState(coordinates);
 
     // Create popup <div>
-    useEffect(
-        () => {
-            const div = document.createElement('div');
-            popupContainerRef.current = div;
-            return () => {
-                div.remove();
-            };
-        },
+    const div = useMemo(
+        () => document.createElement('div'),
         [],
-    );
-
-    // Render react component in popup <div>
-    useEffect(
-        () => {
-            if (!map) {
-                return;
-            }
-            ReactDOM.render(
-                children,
-                popupContainerRef.current,
-            );
-        },
-        [map, children],
     );
 
     // Create mapbox popup and assign to popup <div>
     useEffect(
         () => {
-            if (!map || !popupContainerRef.current || hidden) {
+            if (!map || hidden) {
                 return noop;
             }
 
@@ -80,7 +63,7 @@ function MapPopup(props: Props) {
                 popup.trackPointer();
             }
 
-            popup.setDOMContent(popupContainerRef.current);
+            popup.setDOMContent(div);
             popup.addTo(map);
 
             popupRef.current = popup;
@@ -90,7 +73,7 @@ function MapPopup(props: Props) {
                 popupRef.current = null;
             };
         },
-        [map, hidden, initialPopupOptions, initialTrackPointer, initialCoordinates],
+        [map, hidden, initialPopupOptions, initialTrackPointer, initialCoordinates, div],
     );
 
     // Handle coordinates change
@@ -129,7 +112,7 @@ function MapPopup(props: Props) {
         [map, onHide],
     );
 
-    return null;
+    return createPortal(children, div);
 }
 
 export default MapPopup;

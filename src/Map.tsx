@@ -365,7 +365,9 @@ function Map(props: Props) {
                 }
 
                 const hoverableLayerKeys = layers
-                    .filter((layer) => !!layer.onMouseEnter || !!layer.onMouseLeave)
+                    .filter((layer) => (
+                        !!layer.onMouseEnter || !!layer.onMouseLeave || !!layer.hoverable
+                    ))
                     .map((layer) => layer.layerKey);
 
                 const hoverableFeatures = map.queryRenderedFeatures(

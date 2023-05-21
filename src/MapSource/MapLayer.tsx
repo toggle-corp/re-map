@@ -28,6 +28,7 @@ function removeUndefined<T extends object>(obj: T) {
 interface Props {
     layerKey: string;
     layerOptions: Omit<Exclude<mapboxgl.AnyLayer, mapboxgl.CustomLayerInterface>, 'id'>;
+    hoverable?: boolean;
     onClick?: (
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
@@ -76,6 +77,7 @@ function MapLayer(props: Props) {
         onMouseLeave,
         beneath,
         onAnimationFrame,
+        hoverable = false,
     } = props;
 
     const {
@@ -160,6 +162,7 @@ function MapLayer(props: Props) {
                 layerKey,
                 (layer) => layer && ({
                     ...layer,
+                    hoverable,
                     onClick,
                     onDoubleClick,
                     onMouseEnter,
@@ -171,6 +174,7 @@ function MapLayer(props: Props) {
         },
         [
             map, sourceKey, layerKey,
+            hoverable,
             onClick, onDoubleClick, onMouseEnter, onMouseLeave,
             onDrag, onDragEnd,
             setLayer,

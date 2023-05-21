@@ -6,6 +6,7 @@ export interface Dragging {
 
 export interface Layer {
     name: string;
+    hoverable?: boolean;
     destroy: () => void;
     onClick?: (
         feature: mapboxgl.MapboxGeoJSONFeature,

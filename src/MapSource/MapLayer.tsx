@@ -11,16 +11,6 @@ import { Dragging } from '../type';
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
-type Paint = mapboxgl.BackgroundPaint
-| mapboxgl.FillPaint
-| mapboxgl.FillExtrusionPaint
-| mapboxgl.LinePaint
-| mapboxgl.SymbolPaint
-| mapboxgl.RasterPaint
-| mapboxgl.CirclePaint
-| mapboxgl.HeatmapPaint
-| mapboxgl.HillshadePaint;
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 function removeUndefined<T extends object>(obj: T) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,7 +27,7 @@ function removeUndefined<T extends object>(obj: T) {
 
 interface Props {
     layerKey: string;
-    layerOptions: Omit<mapboxgl.Layer, 'id'>;
+    layerOptions: Omit<Exclude<mapboxgl.AnyLayer, mapboxgl.CustomLayerInterface>, 'id'>;
     onClick?: (
         feature: mapboxgl.MapboxGeoJSONFeature,
         lngLat: mapboxgl.LngLat,
@@ -59,7 +49,7 @@ interface Props {
     ) => void;
     onMouseLeave?: (map: mapboxgl.Map) => void;
     beneath?: string;
-    onAnimationFrame?: (timestamp: number) => Paint | undefined;
+    onAnimationFrame?: (timestamp: number) => mapboxgl.AnyPaint | undefined;
     onDrag?: (
         feature: Dragging,
         lngLat: mapboxgl.LngLat,
@@ -126,7 +116,7 @@ function MapLayer(props: Props) {
                     ...initialLayerOptions,
                     id,
                     source: sourceKey,
-                });
+                } as Exclude<mapboxgl.AnyLayer, mapboxgl.CustomLayerInterface>);
                 map.addLayer(
                     newLayerOptions,
                     initialBeneath,

@@ -21,6 +21,20 @@ type Paint = mapboxgl.BackgroundPaint
 | mapboxgl.HeatmapPaint
 | mapboxgl.HillshadePaint;
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+function removeUndefined<T extends object>(obj: T) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cleanNewLayerOptions: any = {};
+    Object.keys(obj).forEach((key) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (key && (obj as any)[key]) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            cleanNewLayerOptions[key] = (obj as any)[key];
+        }
+    });
+    return cleanNewLayerOptions as T;
+}
+
 interface Props {
     layerKey: string;
     layerOptions: Omit<mapboxgl.Layer, 'id'>;
@@ -60,19 +74,6 @@ interface Props {
     ) => void;
 }
 
-function removeUndefined<T extends object>(obj: T) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cleanNewLayerOptions: any = {};
-    Object.keys(obj).forEach((key) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (key && (obj as any)[key]) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            cleanNewLayerOptions[key] = (obj as any)[key];
-        }
-    });
-    return cleanNewLayerOptions as T;
-}
-
 function MapLayer(props: Props) {
     const {
         layerKey,
@@ -96,6 +97,8 @@ function MapLayer(props: Props) {
         setLayer,
         removeLayer,
         getLayer,
+
+        managed: initialManaged,
         debug,
     } = useContext(SourceChildContext);
 
@@ -111,23 +114,24 @@ function MapLayer(props: Props) {
             if (!map || !sourceKey || !layerKey) {
                 return noop;
             }
-            const id = getLayerName(sourceKey, layerKey);
+            const id = getLayerName(sourceKey, layerKey, initialManaged);
 
             if (initialDebug) {
                 // eslint-disable-next-line no-console
                 console.warn(`Creating new layer: ${id}`);
             }
 
-            const newLayerOptions = removeUndefined({
-                ...initialLayerOptions,
-                id,
-                source: sourceKey,
-            });
-
-            map.addLayer(
-                newLayerOptions,
-                initialBeneath,
-            );
+            if (initialManaged) {
+                const newLayerOptions = removeUndefined({
+                    ...initialLayerOptions,
+                    id,
+                    source: sourceKey,
+                });
+                map.addLayer(
+                    newLayerOptions,
+                    initialBeneath,
+                );
+            }
 
             const destroy = () => {
                 const layer = getLayer(layerKey);
@@ -151,6 +155,7 @@ function MapLayer(props: Props) {
         [
             map, mapStyle, sourceKey, layerKey,
             initialLayerOptions, initialBeneath, initialDebug,
+            initialManaged,
             getLayer, removeLayer, setLayer,
         ],
     );
@@ -195,12 +200,12 @@ function MapLayer(props: Props) {
             if (!map || !sourceKey || !layerKey || !paint) {
                 return;
             }
-            const id = getLayerName(sourceKey, layerKey);
+            const id = getLayerName(sourceKey, layerKey, initialManaged);
             Object.entries(paint).forEach(([key, value]) => {
                 map.setPaintProperty(id, key, value);
             });
         },
-        [map, sourceKey, layerKey, paint],
+        [map, sourceKey, layerKey, paint, initialManaged],
     );
 
     // Handle layout change
@@ -210,12 +215,12 @@ function MapLayer(props: Props) {
             if (!map || !sourceKey || !layerKey || !layout) {
                 return;
             }
-            const id = getLayerName(sourceKey, layerKey);
+            const id = getLayerName(sourceKey, layerKey, initialManaged);
             Object.entries(layout).forEach(([key, value]) => {
                 map.setLayoutProperty(id, key, value);
             });
         },
-        [map, sourceKey, layerKey, layout],
+        [map, sourceKey, layerKey, layout, initialManaged],
     );
 
     // Handle filter change
@@ -225,10 +230,10 @@ function MapLayer(props: Props) {
             if (!map || !sourceKey || !layerKey) {
                 return;
             }
-            const id = getLayerName(sourceKey, layerKey);
+            const id = getLayerName(sourceKey, layerKey, initialManaged);
             map.setFilter(id, filter);
         },
-        [map, sourceKey, layerKey, filter],
+        [map, sourceKey, layerKey, filter, initialManaged],
     );
 
     useEffect(
@@ -240,7 +245,7 @@ function MapLayer(props: Props) {
             const handleAnimation = (timestamp: number) => {
                 const values = onAnimationFrame(timestamp);
                 if (values) {
-                    const id = getLayerName(sourceKey, layerKey);
+                    const id = getLayerName(sourceKey, layerKey, initialManaged);
                     Object.entries(values).forEach(([key, value]) => {
                         map.setPaintProperty(id, key, value);
                     });
@@ -257,7 +262,7 @@ function MapLayer(props: Props) {
                 }
             };
         },
-        [map, sourceKey, layerKey, onAnimationFrame],
+        [map, sourceKey, layerKey, onAnimationFrame, initialManaged],
     );
 
     return null;

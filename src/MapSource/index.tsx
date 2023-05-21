@@ -29,9 +29,13 @@ interface Props {
     sourceOptions: mapboxgl.AnySourceData;
     sourceKey: string;
 
+    managed: boolean;
+
+    // FIXME: do we need a separate geojson field?
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
+
     createMarkerElement?: (properties: Record<string, unknown>) => HTMLElement;
 }
 
@@ -42,6 +46,7 @@ function MapSource(props: Props) {
         children,
         geoJson,
         createMarkerElement,
+        managed = true,
     } = props;
 
     const {
@@ -59,6 +64,7 @@ function MapSource(props: Props) {
     const [forceUpdate] = useCounter(0);
     const [initialGeoJson] = useState(geoJson);
     const [initialSourceOptions] = useState(sourceOptions);
+    const [initialManaged] = useState(managed);
 
     // Add source in mapboxgl and notify addition to parent
     useEffect(
@@ -95,7 +101,12 @@ function MapSource(props: Props) {
                 removeSource(sourceKey);
             };
 
-            setSource({ name: sourceKey, destroy, layers: {} });
+            setSource({
+                name: sourceKey,
+                destroy,
+                layers: {},
+                managed: initialManaged,
+            });
             forceUpdate();
 
             return destroy;
@@ -104,7 +115,8 @@ function MapSource(props: Props) {
             map, mapStyle, sourceKey,
             forceUpdate,
             getSource, removeSource, setSource,
-            initialGeoJson, initialSourceOptions, initialDebug,
+            initialGeoJson, initialSourceOptions,
+            initialDebug, initialManaged,
         ],
     );
 
@@ -186,15 +198,6 @@ function MapSource(props: Props) {
                 return noop;
             }
 
-            /*
-            const handleData = (e: mapboxgl.EventData) => {
-                if (e.sourceId !== sourceKey || !e.isSourceLoaded) {
-                    return;
-                }
-                updateMarkers();
-            };
-            map.on('data', handleData);
-            */
             map.on('move', updateMarkers);
             map.on('moveend', updateMarkers);
 
@@ -284,8 +287,8 @@ function MapSource(props: Props) {
             }
 
             // NOTE: check if map is dis-mounted?
-            if (map) {
-                const id = getLayerName(sourceKey, layerKey);
+            if (map && source.managed) {
+                const id = getLayerName(sourceKey, layerKey, source.managed);
                 if (initialDebug) {
                     // eslint-disable-next-line no-console
                     console.warn(`Removing layer: ${id}`);
@@ -316,6 +319,7 @@ function MapSource(props: Props) {
             removeLayer,
             isSourceDefined,
             isMapDestroyed,
+            managed: initialManaged,
             debug: initialDebug,
         }),
         [
@@ -328,6 +332,7 @@ function MapSource(props: Props) {
             isSourceDefined,
             isMapDestroyed,
             initialDebug,
+            initialManaged,
         ],
     );
 

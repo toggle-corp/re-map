@@ -15,43 +15,43 @@ interface Props {
     coordinates: mapboxgl.LngLatLike;
     hidden: boolean;
     onHide?: () => void;
-    tooltipOptions?: mapboxgl.PopupOptions;
+    popupOptions?: mapboxgl.PopupOptions;
     trackPointer: boolean;
 }
 
-function MapTooltip(props: Props) {
+function MapPopup(props: Props) {
     const { map } = useContext(MapChildContext);
     const {
         children,
         coordinates,
         hidden = false,
-        tooltipOptions,
+        popupOptions,
         onHide,
         trackPointer = false,
     } = props;
 
     // const popupUpdateTimeoutRef = useRef<number | undefined>();
-    const tooltipContainerRef = useRef<HTMLDivElement | null>(null);
+    const popupContainerRef = useRef<HTMLDivElement | null>(null);
     const popupRef = useRef<mapboxgl.Popup | null>(null);
 
-    const [initialTooltipOptions] = useState(tooltipOptions);
+    const [initialPopupOptions] = useState(popupOptions);
     const [initialTrackPointer] = useState(trackPointer);
     const [initialCoordinates] = useState(coordinates);
 
-    // Create tooltip <div>
+    // Create popup <div>
     useEffect(
         () => {
-            tooltipContainerRef.current = document.createElement('div');
+            popupContainerRef.current = document.createElement('div');
             return () => {
-                if (tooltipContainerRef.current) {
-                    tooltipContainerRef.current.remove();
+                if (popupContainerRef.current) {
+                    popupContainerRef.current.remove();
                 }
             };
         },
         [],
     );
 
-    // Render react component in tooltip <div>
+    // Render react component in popup <div>
     useEffect(
         () => {
             if (!map) {
@@ -59,20 +59,20 @@ function MapTooltip(props: Props) {
             }
             ReactDOM.render(
                 children,
-                tooltipContainerRef.current,
+                popupContainerRef.current,
             );
         },
         [map, children],
     );
 
-    // Create mapbox popup and assign to tooltip <div>
+    // Create mapbox popup and assign to popup <div>
     useEffect(
         () => {
-            if (!map || !tooltipContainerRef.current || hidden) {
+            if (!map || !popupContainerRef.current || hidden) {
                 return noop;
             }
 
-            popupRef.current = new mapboxgl.Popup(initialTooltipOptions);
+            popupRef.current = new mapboxgl.Popup(initialPopupOptions);
 
             if (initialCoordinates) {
                 popupRef.current.setLngLat(initialCoordinates);
@@ -81,7 +81,7 @@ function MapTooltip(props: Props) {
                 popupRef.current.trackPointer();
             }
 
-            popupRef.current.setDOMContent(tooltipContainerRef.current);
+            popupRef.current.setDOMContent(popupContainerRef.current);
             popupRef.current.addTo(map);
 
             /*
@@ -110,7 +110,7 @@ function MapTooltip(props: Props) {
                 }
             };
         },
-        [map, hidden, initialTooltipOptions, initialTrackPointer, initialCoordinates],
+        [map, hidden, initialPopupOptions, initialTrackPointer, initialCoordinates],
     );
 
     // Handle coordinates change
@@ -147,4 +147,4 @@ function MapTooltip(props: Props) {
     return null;
 }
 
-export default MapTooltip;
+export default MapPopup;

@@ -1,18 +1,7 @@
-import { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-
-export function getLayerName(sourceKey: string, layerKey: string) {
+// eslint-disable-next-line import/prefer-default-export
+export function getLayerName(sourceKey: string, layerKey: string, managed: boolean) {
+    if (!managed) {
+        return layerKey;
+    }
     return `${sourceKey}›${layerKey}`;
-}
-
-export function usePrevious<T>(value: T, initialValue: T) {
-    const ref = useRef<T>(initialValue);
-    useEffect(() => {
-        ref.current = value;
-    });
-    return ref.current;
-}
-
-export function setMapboxToken(token: string) {
-    mapboxgl.accessToken = token;
 }

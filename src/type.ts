@@ -45,6 +45,7 @@ export interface Layer {
 
 export interface Source {
     name: string;
+    managed: boolean;
     destroy: () => void;
     layers: Obj<Layer>;
 }

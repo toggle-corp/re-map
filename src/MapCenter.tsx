@@ -15,7 +15,6 @@ function MapCenter(props: Props) {
     } = props;
 
     const centerOptionsRef = useRef(centerOptions);
-
     useEffect(
         () => {
             centerOptionsRef.current = centerOptions;

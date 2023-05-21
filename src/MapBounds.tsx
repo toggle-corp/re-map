@@ -17,7 +17,6 @@ function MapBounds(props: Props) {
     } = props;
 
     const durationRef = useRef(durationFromProps);
-
     useEffect(
         () => {
             durationRef.current = durationFromProps;

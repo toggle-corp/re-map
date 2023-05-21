@@ -41,11 +41,10 @@ function MapPopup(props: Props) {
     // Create popup <div>
     useEffect(
         () => {
-            popupContainerRef.current = document.createElement('div');
+            const div = document.createElement('div');
+            popupContainerRef.current = div;
             return () => {
-                if (popupContainerRef.current) {
-                    popupContainerRef.current.remove();
-                }
+                div.remove();
             };
         },
         [],
@@ -72,42 +71,23 @@ function MapPopup(props: Props) {
                 return noop;
             }
 
-            popupRef.current = new mapboxgl.Popup(initialPopupOptions);
+            const popup = new mapboxgl.Popup(initialPopupOptions);
 
             if (initialCoordinates) {
-                popupRef.current.setLngLat(initialCoordinates);
+                popup.setLngLat(initialCoordinates);
             }
             if (initialTrackPointer) {
-                popupRef.current.trackPointer();
+                popup.trackPointer();
             }
 
-            popupRef.current.setDOMContent(popupContainerRef.current);
-            popupRef.current.addTo(map);
+            popup.setDOMContent(popupContainerRef.current);
+            popup.addTo(map);
 
-            /*
-            // NOTE: this is a fix for bad initial popup placement
-            popupUpdateTimeoutRef.current = window.setTimeout(
-                () => {
-                    if (popupRef.current) {
-                        // eslint-disable-next-line no-underscore-dangle
-                        popupRef.current._update();
-                    }
-                },
-                0,
-            );
-            */
+            popupRef.current = popup;
 
             return () => {
-                /*
-                if (popupUpdateTimeoutRef.current) {
-                    window.clearTimeout(popupUpdateTimeoutRef.current);
-                }
-                */
-
-                if (popupRef.current) {
-                    popupRef.current.remove();
-                    popupRef.current = null;
-                }
+                popup.remove();
+                popupRef.current = null;
             };
         },
         [map, hidden, initialPopupOptions, initialTrackPointer, initialCoordinates],
@@ -130,14 +110,19 @@ function MapPopup(props: Props) {
             if (!map || !popupRef.current) {
                 return noop;
             }
-            popupRef.current.on('close', () => {
+
+            const popup = popupRef.current;
+
+            const onClose = () => {
                 if (onHide) {
                     onHide();
                 }
-            });
+            };
+            popup.on('close', onClose);
             return () => {
-                if (popupRef.current) {
-                    popupRef.current.off('close');
+                popup.off('close', onClose);
+                if (popup.isOpen()) {
+                    popup.remove();
                 }
             };
         },

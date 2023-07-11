@@ -1,4 +1,6 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+    useContext, useEffect, useRef, useState,
+} from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 
@@ -17,7 +19,7 @@ interface Props {
     trackPointer: boolean;
 }
 
-const MapTooltip = (props: Props) => {
+function MapTooltip(props: Props) {
     const { map } = useContext(MapChildContext);
     const {
         children,
@@ -143,7 +145,7 @@ const MapTooltip = (props: Props) => {
     );
 
     return null;
-};
+}
 
 MapTooltip.defaultProps = {
     hidden: false,

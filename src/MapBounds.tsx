@@ -8,7 +8,7 @@ interface Props {
     duration: number;
 }
 
-const MapBounds = (props: Props) => {
+function MapBounds(props: Props) {
     const { map, setBounds } = useContext(MapChildContext);
     const {
         padding,
@@ -48,7 +48,7 @@ const MapBounds = (props: Props) => {
     );
 
     return null;
-};
+}
 
 MapBounds.defaultProps = {
     padding: 0,

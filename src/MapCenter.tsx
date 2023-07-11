@@ -7,7 +7,7 @@ interface Props {
     centerOptions: Omit<mapboxgl.FlyToOptions, 'center'>;
 }
 
-const MapCenter = (props: Props) => {
+function MapCenter(props: Props) {
     const { map } = useContext(MapChildContext);
     const {
         center,
@@ -39,7 +39,7 @@ const MapCenter = (props: Props) => {
     );
 
     return null;
-};
+}
 
 MapCenter.defaultProps = {
     padding: 0,

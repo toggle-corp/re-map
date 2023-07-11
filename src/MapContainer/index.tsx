@@ -11,7 +11,7 @@ interface Props {
     className?: string;
 }
 
-const MapContainer = (props: Props) => {
+function MapContainer(props: Props) {
     const { className } = props;
     const { mapContainerRef, map } = useContext(MapChildContext);
 
@@ -33,6 +33,6 @@ const MapContainer = (props: Props) => {
             style={style}
         />
     );
-};
+}
 
 export default MapContainer;

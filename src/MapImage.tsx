@@ -18,7 +18,7 @@ type Img = HTMLImageElement
 | { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
 | ImageData;
 
-const MapImage = (props: Props) => {
+function MapImage(props: Props) {
     const {
         map,
         mapStyle,
@@ -90,6 +90,6 @@ const MapImage = (props: Props) => {
     );
 
     return null;
-};
+}
 
 export default MapImage;

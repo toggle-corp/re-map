@@ -1,10 +1,10 @@
 import babel from '@rollup/plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import eslint from '@rollup/plugin-eslint';
 import filesize from 'rollup-plugin-filesize';
-import { eslint } from 'rollup-plugin-eslint';
 
-import pkg from './package.json';
+import pkg from './package.json' assert { type: 'json' };
 
 const INPUT_FILE_PATH = 'src/index.tsx';
 
@@ -28,20 +28,21 @@ const PLUGINS = [
 
 const OUTPUT_DATA = [
     {
-        file: pkg.main,
+        dir: 'build/cjs',
         format: 'cjs',
     },
     {
-        file: pkg.module,
-        format: 'es',
+        dir: 'build/esm',
+        format: 'esm',
+        preserveModules: true,
+        preserveModulesRoot: 'src',
     },
 ];
 
-const config = OUTPUT_DATA.map(({ file, format }) => ({
+const config = OUTPUT_DATA.map((options) => ({
     input: INPUT_FILE_PATH,
     output: {
-        file,
-        format,
+        ...options,
         sourcemap: true,
         exports: 'named',
     },

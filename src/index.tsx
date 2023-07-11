@@ -1,9 +1,16 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+    useMemo,
+} from 'react';
 import mapboxgl from 'mapbox-gl';
-import produce from 'immer';
 
 import { getLayerName } from './utils';
-import { Layer, Sources, Source, Dragging } from './type';
+import {
+    Layer, Sources, Source, Dragging,
+} from './type';
 import { MapChildContext } from './context';
 
 const UNSUPPORTED_BROWSER = !mapboxgl.supported();
@@ -563,11 +570,11 @@ function Map(props: Props) {
 
     const setSource = useCallback(
         (source: Source) => {
-            sourcesRef.current = produce(sourcesRef.current, (safeSource) => {
-                const { name } = source;
-                // eslint-disable-next-line no-param-reassign
-                safeSource[name] = source;
-            });
+            const { name } = source;
+            sourcesRef.current = {
+                ...sourcesRef.current,
+                [name]: source,
+            };
         },
         [],
     );
@@ -578,10 +585,11 @@ function Map(props: Props) {
                 return;
             }
 
-            sourcesRef.current = produce(sourcesRef.current, (safeSource) => {
-                // eslint-disable-next-line no-param-reassign
-                delete safeSource[sourceKey];
-            });
+            sourcesRef.current = {
+                ...sourcesRef.current,
+            };
+
+            delete sourcesRef.current[sourceKey];
 
             const { current: map } = mapRef;
             if (map) {
@@ -594,26 +602,39 @@ function Map(props: Props) {
         [initialDebug],
     );
 
+    const childrenProps = useMemo(
+        () => ({
+            map: mapRef.current,
+            mapStyle: loaded ? mapStyle : undefined,
+            mapContainerRef,
+
+            isSourceDefined,
+            getSource,
+            setSource,
+            removeSource,
+
+            isMapDestroyed,
+
+            setBounds,
+            debug: initialDebug,
+        }),
+        [
+            mapStyle,
+            loaded,
+            isSourceDefined,
+            getSource,
+            setSource,
+            removeSource,
+            isMapDestroyed,
+            setBounds,
+            initialDebug,
+        ],
+    );
+
     const mapChildren = children as React.ReactElement<unknown>;
     if (UNSUPPORTED_BROWSER) {
         return mapChildren;
     }
-
-    const childrenProps = {
-        map: mapRef.current,
-        mapStyle: loaded ? mapStyle : undefined,
-        mapContainerRef,
-
-        isSourceDefined,
-        getSource,
-        setSource,
-        removeSource,
-
-        isMapDestroyed,
-
-        setBounds,
-        debug: initialDebug,
-    };
 
     return (
         <MapChildContext.Provider value={childrenProps}>

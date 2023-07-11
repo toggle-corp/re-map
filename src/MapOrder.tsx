@@ -9,7 +9,7 @@ interface Props {
     ordering: string[] | undefined;
 }
 
-const MapOrder = (props: Props) => {
+function MapOrder(props: Props) {
     const { map } = useContext(MapChildContext);
     const {
         ordering,
@@ -49,6 +49,6 @@ const MapOrder = (props: Props) => {
     );
 
     return null;
-};
+}
 
 export default MapOrder;

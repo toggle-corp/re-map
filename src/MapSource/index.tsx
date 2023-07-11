@@ -1,6 +1,12 @@
-import React, { useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, {
+    useContext,
+    useEffect,
+    useState,
+    useCallback,
+    useRef,
+    useMemo,
+} from 'react';
 import mapboxgl from 'mapbox-gl';
-import produce from 'immer';
 import { Obj } from '@togglecorp/fujs';
 
 import { getLayerName } from '../utils';
@@ -29,7 +35,7 @@ interface Props {
     createMarkerElement?: (properties: Record<string, unknown>) => HTMLElement;
 }
 
-const MapSource = (props: Props) => {
+function MapSource(props: Props) {
     const {
         sourceOptions,
         sourceKey,
@@ -233,16 +239,25 @@ const MapSource = (props: Props) => {
                 return;
             }
             // console.warn(`Registering layer: ${name}`);
-            const newSource = produce(source, (safeSource) => {
-                const value = method(source.layers[name]);
-                if (value !== undefined) {
-                    // eslint-disable-next-line no-param-reassign
-                    safeSource.layers[name] = value;
-                } else {
-                    // eslint-disable-next-line no-param-reassign
-                    delete safeSource.layers[name];
-                }
-            });
+            let newSource;
+            const value = method(source.layers[name]);
+            if (value !== undefined) {
+                newSource = {
+                    ...source,
+                    layers: {
+                        ...source.layers,
+                        [name]: value,
+                    },
+                };
+            } else {
+                newSource = {
+                    ...source,
+                    layers: {
+                        ...source.layers,
+                    },
+                };
+                delete newSource.layers[name];
+            }
             setSource(newSource);
         },
         [sourceKey, getSource, setSource],
@@ -271,38 +286,53 @@ const MapSource = (props: Props) => {
                 map.removeLayer(id);
             }
 
-            // console.warn(`Registering layer: ${layerKey}`);
-            const newSource = produce(source, (safeSource) => {
-                // eslint-disable-next-line no-param-reassign
-                delete safeSource.layers[layerKey];
-            });
+            const newSource = {
+                ...source,
+                layers: {
+                    ...source.layers,
+                },
+            };
+            delete newSource.layers[layerKey];
 
             setSource(newSource);
         },
         [map, sourceKey, getSource, setSource, initialDebug],
     );
 
+    const childrenProps = useMemo(
+        () => ({
+            map,
+            mapStyle,
+            sourceKey,
+            getLayer,
+            setLayer,
+            removeLayer,
+            isSourceDefined,
+            isMapDestroyed,
+            debug: initialDebug,
+        }),
+        [
+            map,
+            mapStyle,
+            sourceKey,
+            getLayer,
+            setLayer,
+            removeLayer,
+            isSourceDefined,
+            isMapDestroyed,
+            initialDebug,
+        ],
+    );
+
     if (!isSourceDefined(sourceKey)) {
         return null;
     }
-
-    const childrenProps = {
-        map,
-        mapStyle,
-        sourceKey,
-        getLayer,
-        setLayer,
-        removeLayer,
-        isSourceDefined,
-        isMapDestroyed,
-        debug: initialDebug,
-    };
 
     return (
         <SourceChildContext.Provider value={childrenProps}>
             {children}
         </SourceChildContext.Provider>
     );
-};
+}
 
 export default MapSource;

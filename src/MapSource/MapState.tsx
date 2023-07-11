@@ -44,7 +44,6 @@ function MapState<T>(props: Props<T>) {
             }
 
             if (initialDebug) {
-                // eslint-disable-next-line max-len
                 console.warn(`Setting source state: "${sourceKey}" with "${sourceLayer || 'no'}" source layer.`);
             }
 

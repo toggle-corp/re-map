@@ -75,17 +75,17 @@ function Map(props: Props) {
         mapStyle: mapStyleFromProps,
         mapOptions,
 
-        scaleControlPosition,
-        scaleControlShown,
+        scaleControlPosition = 'bottom-right',
+        scaleControlShown = false,
         scaleControlOptions,
 
-        navControlShown,
+        navControlShown = false,
         navControlOptions,
-        navControlPosition,
+        navControlPosition = 'top-right',
 
         children,
 
-        debug,
+        debug = false,
     } = props;
 
     const [initialDebug] = useState(debug);
@@ -129,12 +129,14 @@ function Map(props: Props) {
     useEffect(
         () => {
             if (UNSUPPORTED_BROWSER) {
+                // eslint-disable-next-line no-console
                 console.error('No Mapboxgl support.');
                 return noop;
             }
 
             const { current: mapContainer } = mapContainerRef;
             if (!mapContainer) {
+                // eslint-disable-next-line no-console
                 console.error('No container found.');
                 return noop;
             }
@@ -195,6 +197,7 @@ function Map(props: Props) {
 
                 if (draggableFeatures.length <= 0) {
                     if (initialDebug) {
+                        // eslint-disable-next-line no-console
                         console.warn('No draggable layer found.');
                     }
                     return;
@@ -264,6 +267,7 @@ function Map(props: Props) {
 
                 if (clickableFeatures.length <= 0) {
                     if (initialDebug) {
+                        // eslint-disable-next-line no-console
                         console.warn('No clickable layer found.');
                     }
                     // TODO: add a global handler
@@ -309,6 +313,7 @@ function Map(props: Props) {
 
                 if (clickableFeatures.length <= 0) {
                     if (initialDebug) {
+                        // eslint-disable-next-line no-console
                         console.warn('No clickable layer found.');
                     }
                     // TODO: add a global handler
@@ -488,6 +493,7 @@ function Map(props: Props) {
                 mapDestroyedRef.current = true;
 
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.warn('Removing map');
                 }
                 mapboxglMap.remove();
@@ -519,12 +525,14 @@ function Map(props: Props) {
             lastIn.current = undefined;
 
             if (initialDebug) {
+                // eslint-disable-next-line no-console
                 console.warn(`Setting map style ${mapStyleFromProps}`);
             }
 
             map.setStyle(mapStyleFromProps);
             const onStyleData = () => {
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.info('Passing mapStyle:', mapStyleFromProps);
                 }
                 setMapStyle(mapStyleFromProps);
@@ -594,6 +602,7 @@ function Map(props: Props) {
             const { current: map } = mapRef;
             if (map) {
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.warn(`Removing source: ${sourceKey}`);
                 }
                 map.removeSource(sourceKey);
@@ -642,16 +651,6 @@ function Map(props: Props) {
         </MapChildContext.Provider>
     );
 }
-
-Map.defaultProps = {
-    scaleControlShown: false,
-    scaleControlPosition: 'bottom-right',
-
-    navControlShown: false,
-    navControlPosition: 'top-right',
-
-    debug: false,
-};
 
 export default Map;
 

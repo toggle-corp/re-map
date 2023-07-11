@@ -45,16 +45,18 @@ const defaultDrawOptions = ({
 
 const disabledClassName = 'disabled-map-draw-control';
 
+const emptyGeoJsons: mapboxgl.MapboxGeoJSONFeature[] = [];
+
 function MapShapeEditor(props: Props) {
     const {
         onCreate,
         onDelete,
         onUpdate,
         onModeChange,
-        geoJsons,
+        geoJsons = emptyGeoJsons,
         drawOptions = defaultDrawOptions,
         drawPosition = 'bottom-right',
-        disabled,
+        disabled = false,
     } = props;
     const {
         map,
@@ -229,10 +231,5 @@ function MapShapeEditor(props: Props) {
 
     return null;
 }
-
-MapShapeEditor.defaultProps = {
-    geoJsons: [],
-    disabled: false,
-};
 
 export default MapShapeEditor;

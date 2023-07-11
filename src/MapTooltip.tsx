@@ -24,10 +24,10 @@ function MapTooltip(props: Props) {
     const {
         children,
         coordinates,
-        hidden,
+        hidden = false,
         tooltipOptions,
         onHide,
-        trackPointer,
+        trackPointer = false,
     } = props;
 
     // const popupUpdateTimeoutRef = useRef<number | undefined>();
@@ -146,10 +146,5 @@ function MapTooltip(props: Props) {
 
     return null;
 }
-
-MapTooltip.defaultProps = {
-    hidden: false,
-    trackPointer: false,
-};
 
 export default MapTooltip;

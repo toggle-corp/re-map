@@ -114,6 +114,7 @@ function MapLayer(props: Props) {
             const id = getLayerName(sourceKey, layerKey);
 
             if (initialDebug) {
+                // eslint-disable-next-line no-console
                 console.warn(`Creating new layer: ${id}`);
             }
 

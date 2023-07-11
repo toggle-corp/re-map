@@ -11,8 +11,8 @@ interface Props {
 function MapBounds(props: Props) {
     const { map, setBounds } = useContext(MapChildContext);
     const {
-        padding,
-        duration: durationFromProps,
+        padding = 0,
+        duration: durationFromProps = 200,
         bounds,
     } = props;
 
@@ -49,10 +49,5 @@ function MapBounds(props: Props) {
 
     return null;
 }
-
-MapBounds.defaultProps = {
-    padding: 0,
-    duration: 200, // ms
-};
 
 export default MapBounds;

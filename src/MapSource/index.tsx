@@ -72,11 +72,13 @@ function MapSource(props: Props) {
                 : initialSourceOptions;
 
             if (initialDebug) {
+                // eslint-disable-next-line no-console
                 console.warn(`Creating new source: ${sourceKey}`, options);
             }
             try {
                 map.addSource(sourceKey, options);
             } catch (e) {
+                // eslint-disable-next-line no-console
                 console.error(e);
             }
 
@@ -116,6 +118,7 @@ function MapSource(props: Props) {
             const source = map.getSource(sourceKey);
             if (source.type === 'geojson') {
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.warn(`Setting source geojson: ${sourceKey}`);
                 }
                 source.setData(geoJson);
@@ -235,6 +238,7 @@ function MapSource(props: Props) {
             // const { name } = layer;
             const source = getSource(sourceKey);
             if (!source) {
+                // eslint-disable-next-line no-console
                 console.error(`No source named: ${sourceKey}`);
                 return;
             }
@@ -267,12 +271,14 @@ function MapSource(props: Props) {
         (layerKey: string) => {
             const source = getSource(sourceKey);
             if (!source) {
+                // eslint-disable-next-line no-console
                 console.error(`No source named: ${sourceKey}`);
                 return;
             }
 
             const layer = source.layers[layerKey];
             if (!layer) {
+                // eslint-disable-next-line no-console
                 console.error(`No layer named: ${layerKey}`, source);
                 return;
             }
@@ -281,6 +287,7 @@ function MapSource(props: Props) {
             if (map) {
                 const id = getLayerName(sourceKey, layerKey);
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.warn(`Removing layer: ${id}`);
                 }
                 map.removeLayer(id);

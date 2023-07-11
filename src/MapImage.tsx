@@ -45,6 +45,7 @@ function MapImage(props: Props) {
             }
 
             if (map.hasImage(initialName)) {
+                // eslint-disable-next-line no-console
                 console.error(`An image with name '${initialName}' already exists`);
             } else if (initialUrl) {
                 if (onLoad) {
@@ -57,6 +58,7 @@ function MapImage(props: Props) {
                             return;
                         }
                         if (error) {
+                            // eslint-disable-next-line no-console
                             console.error(error);
                             return;
                         }

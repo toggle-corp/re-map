@@ -41,9 +41,4 @@ function MapCenter(props: Props) {
     return null;
 }
 
-MapCenter.defaultProps = {
-    padding: 0,
-    duration: 200, // ms
-};
-
 export default MapCenter;

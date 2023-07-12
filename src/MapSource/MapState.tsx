@@ -13,11 +13,13 @@ interface Props<T> {
     attributes: { id: number; value: T }[];
 }
 
+const emptyAttributes: { id: number, value: unknown }[] = [];
+
 function MapState<T>(props: Props<T>) {
     const {
         sourceLayer,
         attributeKey,
-        attributes,
+        attributes = emptyAttributes,
     } = props;
 
     const {
@@ -44,7 +46,7 @@ function MapState<T>(props: Props<T>) {
             }
 
             if (initialDebug) {
-                // eslint-disable-next-line max-len
+                // eslint-disable-next-line no-console
                 console.warn(`Setting source state: "${sourceKey}" with "${sourceLayer || 'no'}" source layer.`);
             }
 
@@ -62,6 +64,7 @@ function MapState<T>(props: Props<T>) {
             return () => {
                 if (!isMapDestroyed() && isSourceDefined(sourceKey)) {
                     if (initialDebug) {
+                        // eslint-disable-next-line no-console
                         console.warn(`Removing source state: "${sourceKey}" with "${sourceLayer || 'no'}" source layer.`);
                     }
                     initialAttributes.forEach((attribute) => {
@@ -145,9 +148,5 @@ function MapState<T>(props: Props<T>) {
 
     return null;
 }
-
-MapState.defaultProps = {
-    attributes: [],
-};
 
 export default MapState;

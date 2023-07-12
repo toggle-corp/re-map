@@ -1,4 +1,6 @@
-import { useContext, useEffect, useState, useRef } from 'react';
+import {
+    useContext, useEffect, useState, useRef,
+} from 'react';
 import mapboxgl from 'mapbox-gl';
 
 import { getLayerName } from '../utils';
@@ -58,7 +60,6 @@ interface Props {
     ) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 function removeUndefined<T extends object>(obj: T) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cleanNewLayerOptions: any = {};
@@ -72,7 +73,7 @@ function removeUndefined<T extends object>(obj: T) {
     return cleanNewLayerOptions as T;
 }
 
-const MapLayer = (props: Props) => {
+function MapLayer(props: Props) {
     const {
         layerKey,
         layerOptions,
@@ -113,6 +114,7 @@ const MapLayer = (props: Props) => {
             const id = getLayerName(sourceKey, layerKey);
 
             if (initialDebug) {
+                // eslint-disable-next-line no-console
                 console.warn(`Creating new layer: ${id}`);
             }
 
@@ -259,6 +261,6 @@ const MapLayer = (props: Props) => {
     );
 
     return null;
-};
+}
 
 export default MapLayer;

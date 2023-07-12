@@ -3,18 +3,18 @@ declare module '@mapbox/mapbox-gl-draw' {
 
     export interface IMapboxDrawControls {
         point?: boolean,
-        // eslint-disable-next-line camelcase
+
         line_string?: boolean,
         polygon?: boolean
         trash?: boolean,
-        // eslint-disable-next-line camelcase
+
         combine_features?: boolean,
-        // eslint-disable-next-line camelcase
+
         uncombine_features?: boolean
     }
 
     class MapboxDraw implements IControl {
-        getDefaultPosition: () => string
+        getDefaultPosition: () => string;
 
         constructor(options?: {
             displayControlsDefault?: boolean,

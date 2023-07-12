@@ -1,9 +1,16 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+    useMemo,
+} from 'react';
 import mapboxgl from 'mapbox-gl';
-import produce from 'immer';
 
 import { getLayerName } from './utils';
-import { Layer, Sources, Source, Dragging } from './type';
+import {
+    Layer, Sources, Source, Dragging,
+} from './type';
 import { MapChildContext } from './context';
 
 const UNSUPPORTED_BROWSER = !mapboxgl.supported();
@@ -68,17 +75,17 @@ function Map(props: Props) {
         mapStyle: mapStyleFromProps,
         mapOptions,
 
-        scaleControlPosition,
-        scaleControlShown,
+        scaleControlPosition = 'bottom-right',
+        scaleControlShown = false,
         scaleControlOptions,
 
-        navControlShown,
+        navControlShown = false,
         navControlOptions,
-        navControlPosition,
+        navControlPosition = 'top-right',
 
         children,
 
-        debug,
+        debug = false,
     } = props;
 
     const [initialDebug] = useState(debug);
@@ -122,12 +129,14 @@ function Map(props: Props) {
     useEffect(
         () => {
             if (UNSUPPORTED_BROWSER) {
+                // eslint-disable-next-line no-console
                 console.error('No Mapboxgl support.');
                 return noop;
             }
 
             const { current: mapContainer } = mapContainerRef;
             if (!mapContainer) {
+                // eslint-disable-next-line no-console
                 console.error('No container found.');
                 return noop;
             }
@@ -188,6 +197,7 @@ function Map(props: Props) {
 
                 if (draggableFeatures.length <= 0) {
                     if (initialDebug) {
+                        // eslint-disable-next-line no-console
                         console.warn('No draggable layer found.');
                     }
                     return;
@@ -257,6 +267,7 @@ function Map(props: Props) {
 
                 if (clickableFeatures.length <= 0) {
                     if (initialDebug) {
+                        // eslint-disable-next-line no-console
                         console.warn('No clickable layer found.');
                     }
                     // TODO: add a global handler
@@ -302,6 +313,7 @@ function Map(props: Props) {
 
                 if (clickableFeatures.length <= 0) {
                     if (initialDebug) {
+                        // eslint-disable-next-line no-console
                         console.warn('No clickable layer found.');
                     }
                     // TODO: add a global handler
@@ -481,6 +493,7 @@ function Map(props: Props) {
                 mapDestroyedRef.current = true;
 
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.warn('Removing map');
                 }
                 mapboxglMap.remove();
@@ -512,12 +525,14 @@ function Map(props: Props) {
             lastIn.current = undefined;
 
             if (initialDebug) {
+                // eslint-disable-next-line no-console
                 console.warn(`Setting map style ${mapStyleFromProps}`);
             }
 
             map.setStyle(mapStyleFromProps);
             const onStyleData = () => {
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.info('Passing mapStyle:', mapStyleFromProps);
                 }
                 setMapStyle(mapStyleFromProps);
@@ -563,11 +578,11 @@ function Map(props: Props) {
 
     const setSource = useCallback(
         (source: Source) => {
-            sourcesRef.current = produce(sourcesRef.current, (safeSource) => {
-                const { name } = source;
-                // eslint-disable-next-line no-param-reassign
-                safeSource[name] = source;
-            });
+            const { name } = source;
+            sourcesRef.current = {
+                ...sourcesRef.current,
+                [name]: source,
+            };
         },
         [],
     );
@@ -578,14 +593,16 @@ function Map(props: Props) {
                 return;
             }
 
-            sourcesRef.current = produce(sourcesRef.current, (safeSource) => {
-                // eslint-disable-next-line no-param-reassign
-                delete safeSource[sourceKey];
-            });
+            sourcesRef.current = {
+                ...sourcesRef.current,
+            };
+
+            delete sourcesRef.current[sourceKey];
 
             const { current: map } = mapRef;
             if (map) {
                 if (initialDebug) {
+                    // eslint-disable-next-line no-console
                     console.warn(`Removing source: ${sourceKey}`);
                 }
                 map.removeSource(sourceKey);
@@ -594,26 +611,39 @@ function Map(props: Props) {
         [initialDebug],
     );
 
+    const childrenProps = useMemo(
+        () => ({
+            map: mapRef.current,
+            mapStyle: loaded ? mapStyle : undefined,
+            mapContainerRef,
+
+            isSourceDefined,
+            getSource,
+            setSource,
+            removeSource,
+
+            isMapDestroyed,
+
+            setBounds,
+            debug: initialDebug,
+        }),
+        [
+            mapStyle,
+            loaded,
+            isSourceDefined,
+            getSource,
+            setSource,
+            removeSource,
+            isMapDestroyed,
+            setBounds,
+            initialDebug,
+        ],
+    );
+
     const mapChildren = children as React.ReactElement<unknown>;
     if (UNSUPPORTED_BROWSER) {
         return mapChildren;
     }
-
-    const childrenProps = {
-        map: mapRef.current,
-        mapStyle: loaded ? mapStyle : undefined,
-        mapContainerRef,
-
-        isSourceDefined,
-        getSource,
-        setSource,
-        removeSource,
-
-        isMapDestroyed,
-
-        setBounds,
-        debug: initialDebug,
-    };
 
     return (
         <MapChildContext.Provider value={childrenProps}>
@@ -621,16 +651,6 @@ function Map(props: Props) {
         </MapChildContext.Provider>
     );
 }
-
-Map.defaultProps = {
-    scaleControlShown: false,
-    scaleControlPosition: 'bottom-right',
-
-    navControlShown: false,
-    navControlPosition: 'top-right',
-
-    debug: false,
-};
 
 export default Map;
 

@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-// eslint-disable-next-line import/prefer-default-export
 export function getLayerName(sourceKey: string, layerKey: string) {
     return `${sourceKey}›${layerKey}`;
 }

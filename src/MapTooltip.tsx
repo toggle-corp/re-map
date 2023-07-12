@@ -1,4 +1,6 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+    useContext, useEffect, useRef, useState,
+} from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 
@@ -17,15 +19,15 @@ interface Props {
     trackPointer: boolean;
 }
 
-const MapTooltip = (props: Props) => {
+function MapTooltip(props: Props) {
     const { map } = useContext(MapChildContext);
     const {
         children,
         coordinates,
-        hidden,
+        hidden = false,
         tooltipOptions,
         onHide,
-        trackPointer,
+        trackPointer = false,
     } = props;
 
     // const popupUpdateTimeoutRef = useRef<number | undefined>();
@@ -143,11 +145,6 @@ const MapTooltip = (props: Props) => {
     );
 
     return null;
-};
-
-MapTooltip.defaultProps = {
-    hidden: false,
-    trackPointer: false,
-};
+}
 
 export default MapTooltip;

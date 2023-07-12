@@ -18,7 +18,7 @@ type Img = HTMLImageElement
 | { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
 | ImageData;
 
-const MapImage = (props: Props) => {
+function MapImage(props: Props) {
     const {
         map,
         mapStyle,
@@ -45,6 +45,7 @@ const MapImage = (props: Props) => {
             }
 
             if (map.hasImage(initialName)) {
+                // eslint-disable-next-line no-console
                 console.error(`An image with name '${initialName}' already exists`);
             } else if (initialUrl) {
                 if (onLoad) {
@@ -57,6 +58,7 @@ const MapImage = (props: Props) => {
                             return;
                         }
                         if (error) {
+                            // eslint-disable-next-line no-console
                             console.error(error);
                             return;
                         }
@@ -90,6 +92,6 @@ const MapImage = (props: Props) => {
     );
 
     return null;
-};
+}
 
 export default MapImage;

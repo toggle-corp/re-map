@@ -1,24 +1,31 @@
-import { useContext, useEffect, useState } from 'react';
+import {
+    useContext,
+    useEffect,
+    useState,
+    useRef,
+} from 'react';
+import { Map } from 'mapbox-gl';
 
 import { MapChildContext } from './context';
+
+type AddImageParams = Parameters<Map['addImage']>;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
-type Props = {
-    name: string;
+type Name = NonNullable<AddImageParams[0]>;
+type Img = NonNullable<AddImageParams[1]>;
+type ImageOptions = NonNullable<AddImageParams[2]>;
+
+type Props<NAME extends Name> = {
+    name: NAME;
     url?: string;
     image?: Img;
-    imageOptions?: { pixelRatio?: number; sdf?: boolean };
-    onLoad?: (loaded: boolean) => void;
+    imageOptions?: ImageOptions;
+    onLoad?: (loaded: boolean, name: NAME) => void;
 }
 
-type Img = HTMLImageElement
-| ArrayBufferView
-| { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
-| ImageData;
-
-function MapImage(props: Props) {
+function MapImage<NAME extends Name>(props: Props<NAME>) {
     const {
         map,
         mapStyle,
@@ -33,10 +40,22 @@ function MapImage(props: Props) {
         onLoad,
     } = props;
 
+    const mountedRef = useRef(true);
+
     const [initialName] = useState(name);
     const [initialUrl] = useState(url);
     const [initialImage] = useState(image);
     const [initialImageOptions] = useState(imageOptions);
+
+    useEffect(
+        () => {
+            mountedRef.current = true;
+            return () => {
+                mountedRef.current = false;
+            };
+        },
+        [],
+    );
 
     useEffect(
         () => {
@@ -49,11 +68,14 @@ function MapImage(props: Props) {
                 console.error(`An image with name '${initialName}' already exists`);
             } else if (initialUrl) {
                 if (onLoad) {
-                    onLoad(false);
+                    onLoad(false, initialName);
                 }
                 map.loadImage(
                     initialUrl,
                     (error: unknown, loadedImage: Img) => {
+                        if (!mountedRef.current) {
+                            return;
+                        }
                         if (isMapDestroyed()) {
                             return;
                         }
@@ -64,14 +86,14 @@ function MapImage(props: Props) {
                         }
                         map.addImage(initialName, loadedImage, initialImageOptions);
                         if (onLoad) {
-                            onLoad(true);
+                            onLoad(true, initialName);
                         }
                     },
                 );
             } else if (initialImage) {
                 map.addImage(initialName, initialImage, initialImageOptions);
                 if (onLoad) {
-                    onLoad(true);
+                    onLoad(true, initialName);
                 }
             }
 
@@ -79,7 +101,7 @@ function MapImage(props: Props) {
                 if (!isMapDestroyed() && map.hasImage(initialName)) {
                     map.removeImage(initialName);
                     if (onLoad) {
-                        onLoad(false);
+                        onLoad(false, initialName);
                     }
                 }
             };

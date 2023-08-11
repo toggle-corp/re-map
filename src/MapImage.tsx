@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 
 import { MapChildContext } from './context';
 
@@ -33,10 +33,22 @@ function MapImage(props: Props) {
         onLoad,
     } = props;
 
+    const mountedRef = useRef(true);
+
     const [initialName] = useState(name);
     const [initialUrl] = useState(url);
     const [initialImage] = useState(image);
     const [initialImageOptions] = useState(imageOptions);
+
+    useEffect(
+        () => {
+            mountedRef.current = true;
+            return () => {
+                mountedRef.current = false;
+            };
+        },
+        [],
+    );
 
     useEffect(
         () => {
@@ -54,6 +66,9 @@ function MapImage(props: Props) {
                 map.loadImage(
                     initialUrl,
                     (error: unknown, loadedImage: Img) => {
+                        if (!mountedRef.current) {
+                            return;
+                        }
                         if (isMapDestroyed()) {
                             return;
                         }

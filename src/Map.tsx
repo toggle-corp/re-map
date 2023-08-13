@@ -151,6 +151,7 @@ function Map(props: Props) {
                 ...initialMapOptions,
             });
 
+            mapDestroyedRef.current = false;
             mapRef.current = mapboxglMap;
             // FIXME: we shouldn't always set cursor to pointer
             // mapboxglMap.getCanvas().style.cursor = 'pointer';

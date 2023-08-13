@@ -10,9 +10,6 @@ import { MapChildContext } from './context';
 
 type AddImageParams = Parameters<Map['addImage']>;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
-
 type Name = NonNullable<AddImageParams[0]>;
 type Img = NonNullable<AddImageParams[1]>;
 type ImageOptions = NonNullable<AddImageParams[2]>;
@@ -59,31 +56,30 @@ function MapImage<NAME extends Name>(props: Props<NAME>) {
 
     useEffect(
         () => {
-            if (!map || !mapStyle) {
-                return noop;
+            if (!map || !mapStyle || (!initialUrl && !initialImage)) {
+                return undefined;
             }
 
             if (map.hasImage(initialName)) {
                 // eslint-disable-next-line no-console
                 console.error(`An image with name '${initialName}' already exists`);
-            } else if (initialUrl) {
-                if (onLoad) {
-                    onLoad(false, initialName);
-                }
+                return undefined;
+            }
+
+            if (initialUrl) {
                 map.loadImage(
                     initialUrl,
                     (error: unknown, loadedImage: Img) => {
-                        if (!mountedRef.current) {
-                            return;
-                        }
-                        if (isMapDestroyed()) {
-                            return;
-                        }
                         if (error) {
                             // eslint-disable-next-line no-console
                             console.error(error);
                             return;
                         }
+
+                        if (!mountedRef.current || isMapDestroyed()) {
+                            return;
+                        }
+
                         map.addImage(initialName, loadedImage, initialImageOptions);
                         if (onLoad) {
                             onLoad(true, initialName);

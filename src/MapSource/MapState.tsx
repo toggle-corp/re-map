@@ -1,4 +1,6 @@
-import { useContext, useEffect, useState, useRef } from 'react';
+import {
+    useContext, useEffect, useState, useRef,
+} from 'react';
 import { difference } from '@togglecorp/fujs';
 
 import { SourceChildContext } from '../context';

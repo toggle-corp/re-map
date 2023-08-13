@@ -96,7 +96,6 @@ function MapPopup(props: Props): ReactPortal {
             const popup = popupRef.current;
 
             const onClose = () => {
-                console.warn('to be closed');
                 if (onHide) {
                     onHide();
                 }

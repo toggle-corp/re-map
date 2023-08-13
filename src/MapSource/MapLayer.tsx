@@ -11,7 +11,6 @@ import { Dragging } from '../type';
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 function removeUndefined<T extends object>(obj: T) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cleanNewLayerOptions: any = {};

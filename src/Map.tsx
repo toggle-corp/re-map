@@ -55,6 +55,7 @@ function getLayersForSources(sources: Sources) {
 function noop() {}
 
 type Pos = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+
 interface Props {
     mapStyle: mapboxgl.MapboxOptions['style'];
     mapOptions: Omit<mapboxgl.MapboxOptions, 'style' | 'container'>;
@@ -453,9 +454,6 @@ function Map(props: Props) {
                     return;
                 }
 
-                if (!map) {
-                    return;
-                }
                 if (!boundsRef.current) {
                     return;
                 }

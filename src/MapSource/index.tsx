@@ -24,24 +24,31 @@ function useCounter(initialValue = 0): [() => void, number] {
     return [increaseValue, value];
 }
 
-interface Props {
+type Props = {
     children?: React.ReactNode | null; // FIXME typings
-    sourceOptions: mapboxgl.AnySourceData;
     sourceKey: string;
-
+    createMarkerElement?: (properties: Record<string, unknown>) => HTMLElement;
+} & ({
+    managed: false;
+    sourceOptions?: undefined;
+    geoJson?: undefined;
+} | {
+    managed?: true;
+    sourceOptions: mapboxgl.AnySourceData;
+    // FIXME: do we need a separate geojson field?
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
     | string;
-    createMarkerElement?: (properties: Record<string, unknown>) => HTMLElement;
-}
+})
 
 function MapSource(props: Props) {
     const {
-        sourceOptions,
         sourceKey,
         children,
         geoJson,
+        sourceOptions,
         createMarkerElement,
+        managed = true,
     } = props;
 
     const {
@@ -59,6 +66,7 @@ function MapSource(props: Props) {
     const [forceUpdate] = useCounter(0);
     const [initialGeoJson] = useState(geoJson);
     const [initialSourceOptions] = useState(sourceOptions);
+    const [initialManaged] = useState(managed);
 
     // Add source in mapboxgl and notify addition to parent
     useEffect(
@@ -67,19 +75,26 @@ function MapSource(props: Props) {
                 return noop;
             }
 
-            const options = initialSourceOptions.type === 'geojson'
-                ? { ...initialSourceOptions, data: initialGeoJson }
-                : initialSourceOptions;
-
             if (initialDebug) {
                 // eslint-disable-next-line no-console
-                console.warn(`Creating new source: ${sourceKey}`, options);
+                console.warn(`Creating new source: ${sourceKey}`, initialSourceOptions);
             }
-            try {
-                map.addSource(sourceKey, options);
-            } catch (e) {
-                // eslint-disable-next-line no-console
-                console.error(e);
+
+            if (initialManaged && initialSourceOptions) {
+                const options = initialSourceOptions.type === 'geojson'
+                    ? { ...initialSourceOptions, data: initialGeoJson }
+                    : initialSourceOptions;
+
+                if (initialDebug) {
+                    // eslint-disable-next-line no-console
+                    console.warn(`Using options for new source: ${sourceKey}`, options);
+                }
+                try {
+                    map.addSource(sourceKey, options);
+                } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.error(e);
+                }
             }
 
             const destroy = () => {
@@ -95,7 +110,12 @@ function MapSource(props: Props) {
                 removeSource(sourceKey);
             };
 
-            setSource({ name: sourceKey, destroy, layers: {} });
+            setSource({
+                name: sourceKey,
+                destroy,
+                layers: {},
+                managed: initialManaged,
+            });
             forceUpdate();
 
             return destroy;
@@ -104,7 +124,8 @@ function MapSource(props: Props) {
             map, mapStyle, sourceKey,
             forceUpdate,
             getSource, removeSource, setSource,
-            initialGeoJson, initialSourceOptions, initialDebug,
+            initialGeoJson, initialSourceOptions,
+            initialDebug, initialManaged,
         ],
     );
 
@@ -112,7 +133,7 @@ function MapSource(props: Props) {
     // TODO: don't call in first render
     useEffect(
         () => {
-            if (!map || !sourceKey || !geoJson || !mapStyle) {
+            if (!map || !sourceKey || !geoJson || !mapStyle || !initialManaged) {
                 return;
             }
             const source = map.getSource(sourceKey);
@@ -124,7 +145,7 @@ function MapSource(props: Props) {
                 source.setData(geoJson);
             }
         },
-        [map, mapStyle, sourceKey, geoJson, initialGeoJson, initialDebug],
+        [map, mapStyle, sourceKey, geoJson, initialGeoJson, initialDebug, initialManaged],
     );
 
     const markers = useRef<Obj<mapboxgl.Marker>>({});
@@ -186,15 +207,6 @@ function MapSource(props: Props) {
                 return noop;
             }
 
-            /*
-            const handleData = (e: mapboxgl.EventData) => {
-                if (e.sourceId !== sourceKey || !e.isSourceLoaded) {
-                    return;
-                }
-                updateMarkers();
-            };
-            map.on('data', handleData);
-            */
             map.on('move', updateMarkers);
             map.on('moveend', updateMarkers);
 
@@ -284,8 +296,8 @@ function MapSource(props: Props) {
             }
 
             // NOTE: check if map is dis-mounted?
-            if (map) {
-                const id = getLayerName(sourceKey, layerKey);
+            if (map && source.managed) {
+                const id = getLayerName(sourceKey, layerKey, source.managed);
                 if (initialDebug) {
                     // eslint-disable-next-line no-console
                     console.warn(`Removing layer: ${id}`);
@@ -316,6 +328,7 @@ function MapSource(props: Props) {
             removeLayer,
             isSourceDefined,
             isMapDestroyed,
+            managed: initialManaged,
             debug: initialDebug,
         }),
         [
@@ -328,6 +341,7 @@ function MapSource(props: Props) {
             isSourceDefined,
             isMapDestroyed,
             initialDebug,
+            initialManaged,
         ],
     );
 

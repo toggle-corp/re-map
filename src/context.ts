@@ -48,6 +48,7 @@ interface SourceChildState {
     sourceKey?: string;
     isSourceDefined: (sourceKey: string) => boolean;
     isMapDestroyed: () => boolean;
+    managed: boolean;
 
     setLayer: (layerKey: string, method: (layer: Layer | undefined) => Layer | undefined) => void;
     getLayer: (layerKey: string) => Layer | undefined;
@@ -61,6 +62,7 @@ const initialSourceChildState: SourceChildState = {
     sourceKey: undefined,
     isSourceDefined: () => false,
     isMapDestroyed: () => false,
+    managed: true,
 
     setLayer: noop,
     getLayer: () => undefined,

@@ -1,9 +1,17 @@
-import { useContext, useEffect, useState } from 'react';
+import {
+    useContext, useEffect, useState, useRef,
+} from 'react';
 import { difference } from '@togglecorp/fujs';
 
 import { SourceChildContext } from '../context';
-import { usePrevious } from '../utils';
 
+function usePreviousValue<T>(value: T, initialValue: T) {
+    const ref = useRef<T>(initialValue);
+    useEffect(() => {
+        ref.current = value;
+    });
+    return ref.current;
+}
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
@@ -35,8 +43,8 @@ function MapState<T>(props: Props<T>) {
     const [initialAttributes] = useState(attributes);
     const [initialDebug] = useState(debug);
 
-    const prevAttributes = usePrevious(attributes, []);
-    const prevSourceLayer = usePrevious(sourceLayer, undefined);
+    const prevAttributes = usePreviousValue(attributes, []);
+    const prevSourceLayer = usePreviousValue(sourceLayer, undefined);
 
     // Handle attributes change
     useEffect(

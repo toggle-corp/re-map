@@ -1,11 +1,16 @@
 import React from 'react';
-import mapboxgl from 'mapbox-gl';
+import {
+    type Map,
+    type MapOptions,
+    type LngLatBoundsLike,
+    type PaddingOptions,
+} from 'maplibre-gl';
 
 import { Source, Layer } from './type';
 
 interface MapChildState {
-    map?: mapboxgl.Map;
-    mapStyle?: mapboxgl.MapboxOptions['style'];
+    map?: Map;
+    mapStyle?: MapOptions['style'];
     mapContainerRef?: React.RefObject<HTMLDivElement>;
     setSource: (source: Source) => void;
     getSource: (sourceKey: string) => Source | undefined;
@@ -14,8 +19,8 @@ interface MapChildState {
     isMapDestroyed: () => boolean;
 
     setBounds: (
-        bounds: mapboxgl.LngLatBoundsLike | undefined,
-        padding: number | mapboxgl.PaddingOptions | undefined,
+        bounds: LngLatBoundsLike | undefined,
+        padding: number | PaddingOptions | undefined,
         duration: number | undefined,
     ) => void;
 
@@ -28,7 +33,7 @@ const noop = () => {};
 const initialMapChildState: MapChildState = {
     map: undefined,
     mapContainerRef: undefined,
-    mapStyle: 'mapbox://styles/mapbox/streets-v11',
+    mapStyle: 'https://demotiles.maplibre.org/style.json',
 
     setSource: noop,
     getSource: () => undefined,
@@ -43,8 +48,8 @@ const initialMapChildState: MapChildState = {
 export const MapChildContext = React.createContext(initialMapChildState);
 
 interface SourceChildState {
-    map?: mapboxgl.Map;
-    mapStyle?: mapboxgl.MapboxOptions['style'];
+    map?: Map;
+    mapStyle?: MapOptions['style'];
     sourceKey?: string;
     isSourceDefined: (sourceKey: string) => boolean;
     isMapDestroyed: () => boolean;
@@ -58,7 +63,7 @@ interface SourceChildState {
 
 const initialSourceChildState: SourceChildState = {
     map: undefined,
-    mapStyle: 'mapbox://styles/mapbox/streets-v11',
+    mapStyle: 'https://demotiles.maplibre.org/style.json',
     sourceKey: undefined,
     isSourceDefined: () => false,
     isMapDestroyed: () => false,

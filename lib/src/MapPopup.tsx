@@ -7,7 +7,11 @@ import React, {
     ReactPortal,
 } from 'react';
 import { createPortal } from 'react-dom';
-import mapboxgl from 'mapbox-gl';
+import {
+    type LngLatLike,
+    type PopupOptions,
+    Popup,
+} from 'maplibre-gl';
 
 import { MapChildContext } from './context';
 
@@ -17,10 +21,10 @@ const noop = () => {};
 // TODO: add mapStyle if necessary
 interface Props {
     children: React.ReactElement;
-    coordinates: mapboxgl.LngLatLike;
+    coordinates: LngLatLike;
     hidden: boolean;
     onHide?: () => void;
-    popupOptions?: mapboxgl.PopupOptions;
+    popupOptions?: PopupOptions;
     trackPointer: boolean;
 }
 
@@ -35,7 +39,7 @@ function MapPopup(props: Props): ReactPortal {
         trackPointer = false,
     } = props;
 
-    const popupRef = useRef<mapboxgl.Popup | null>(null);
+    const popupRef = useRef<Popup | null>(null);
 
     const [initialPopupOptions] = useState(popupOptions);
     const [initialTrackPointer] = useState(trackPointer);
@@ -54,7 +58,7 @@ function MapPopup(props: Props): ReactPortal {
                 return noop;
             }
 
-            const popup = new mapboxgl.Popup(initialPopupOptions);
+            const popup = new Popup(initialPopupOptions);
 
             if (initialCoordinates) {
                 popup.setLngLat(initialCoordinates);

@@ -1,12 +1,21 @@
 import {
     useContext, useEffect, useState, useRef,
 } from 'react';
-import mapboxgl from 'mapbox-gl';
+import {
+    type LayerSpecification,
+    type GeoJSONFeature,
+    type LngLat,
+    type Point2D,
+    Map,
+    type BackgroundLayerSpecification,
+} from 'maplibre-gl';
 
 import { getLayerName } from '../utils';
 import { SourceChildContext } from '../context';
 import { Dragging } from '../type';
 // import { Layer } from '../type';
+
+type PaintSpecification = LayerSpecification['paint'];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
@@ -26,41 +35,41 @@ function removeUndefined<T extends object>(obj: T) {
 
 interface Props {
     layerKey: string;
-    layerOptions: Omit<Exclude<mapboxgl.AnyLayer, mapboxgl.CustomLayerInterface>, 'id'>;
+    layerOptions: Omit<Exclude<LayerSpecification, BackgroundLayerSpecification>, 'id'>;
     hoverable?: boolean;
     onClick?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        feature: GeoJSONFeature,
+        lngLat: LngLat,
+        point: Point2D,
+        map: Map,
     ) => boolean | undefined;
     onDoubleClick?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        feature: GeoJSONFeature,
+        lngLat: LngLat,
+        point: Point2D,
+        map: Map,
     ) => boolean | undefined;
     // Only called for topmost layer
     onMouseEnter?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        feature: GeoJSONFeature,
+        lngLat: LngLat,
+        point: Point2D,
+        map: Map,
     ) => void;
-    onMouseLeave?: (map: mapboxgl.Map) => void;
+    onMouseLeave?: (map: Map) => void;
     beneath?: string;
-    onAnimationFrame?: (timestamp: number) => mapboxgl.AnyPaint | undefined;
+    onAnimationFrame?: (timestamp: number) => PaintSpecification | undefined;
     onDrag?: (
         feature: Dragging,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        lngLat: LngLat,
+        point: Point2D,
+        map: Map,
     ) => void;
     onDragEnd?: (
         feature: Dragging,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        lngLat: LngLat,
+        point: Point2D,
+        map: Map,
     ) => void;
 }
 
@@ -99,7 +108,7 @@ function MapLayer(props: Props) {
 
     const animationKeyRef = useRef<number | undefined>();
 
-    // Add layer in mapboxgl
+    // Add layer in maplibregl
     useEffect(
         () => {
             if (!map || !sourceKey || !layerKey) {
@@ -117,7 +126,7 @@ function MapLayer(props: Props) {
                     ...initialLayerOptions,
                     id,
                     source: sourceKey,
-                } as Exclude<mapboxgl.AnyLayer, mapboxgl.CustomLayerInterface>);
+                } as Exclude<LayerSpecification, BackgroundLayerSpecification>);
                 map.addLayer(
                     newLayerOptions,
                     initialBeneath,

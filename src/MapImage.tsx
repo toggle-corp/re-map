@@ -4,7 +4,7 @@ import {
     useState,
     useRef,
 } from 'react';
-import { Map } from 'mapbox-gl';
+import { Map } from 'maplibre-gl';
 
 import { MapChildContext } from './context';
 
@@ -69,10 +69,15 @@ function MapImage<NAME extends Name>(props: Props<NAME>) {
             if (initialUrl) {
                 map.loadImage(
                     initialUrl,
-                    (error: unknown, loadedImage: Img) => {
+                    (error, loadedImage) => {
                         if (error) {
                             // eslint-disable-next-line no-console
                             console.error(error);
+                            return;
+                        }
+                        if (!loadedImage) {
+                            // eslint-disable-next-line no-console
+                            console.error('Failed to load image');
                             return;
                         }
 

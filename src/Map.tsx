@@ -5,7 +5,15 @@ import React, {
     useCallback,
     useMemo,
 } from 'react';
-import mapboxgl from 'mapbox-gl';
+import {
+    type MapOptions,
+    ScaleControl,
+    type LngLatBoundsLike,
+    Map as MaplibreMap,
+    type PaddingOptions,
+    type MapMouseEvent,
+    NavigationControl,
+} from 'maplibre-gl';
 
 import { getLayerName } from './utils';
 import {
@@ -16,7 +24,29 @@ import {
 } from './type';
 import { MapChildContext } from './context';
 
-const UNSUPPORTED_BROWSER = !mapboxgl.supported();
+function isWebglSupported() {
+    if (window.WebGLRenderingContext) {
+        const canvas = document.createElement('canvas');
+        try {
+            // Note that { failIfMajorPerformanceCaveat: true } can be passed
+            // as a second argument to canvas.getContext(), causing the check
+            // to fail if hardware rendering is not available. See
+            // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext
+            // for more details.
+            const context = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            if (context && typeof context.getParameter === 'function') {
+                return true;
+            }
+        } catch (e) {
+            // WebGL is supported, but disabled
+        }
+        return false;
+    }
+    // WebGL not supported
+    return false;
+}
+
+const UNSUPPORTED_BROWSER = !isWebglSupported();
 
 interface LastInLayer {
     id: string | number | undefined;
@@ -57,16 +87,16 @@ function noop() {}
 type Pos = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
 interface Props {
-    mapStyle: mapboxgl.MapboxOptions['style'];
-    mapOptions: Omit<mapboxgl.MapboxOptions, 'style' | 'container'>;
+    mapStyle: MapOptions['style'];
+    mapOptions: Omit<MapOptions, 'style' | 'container'>;
 
     scaleControlShown: boolean;
     scaleControlPosition?: Pos;
-    scaleControlOptions?: ConstructorParameters<typeof mapboxgl.ScaleControl>[0];
+    scaleControlOptions?: ConstructorParameters<typeof ScaleControl>[0];
 
     navControlShown: boolean;
     navControlPosition?: Pos;
-    navControlOptions?: ConstructorParameters<typeof mapboxgl.NavigationControl>[0];
+    navControlOptions?: ConstructorParameters<typeof NavigationControl>[0];
 
     debug?: boolean;
 
@@ -80,10 +110,10 @@ function Map(props: Props) {
 
         scaleControlPosition = 'bottom-right',
         scaleControlShown = false,
-        scaleControlOptions,
+        scaleControlOptions = {},
 
         navControlShown = false,
-        navControlOptions,
+        navControlOptions = {},
         navControlPosition = 'top-right',
 
         children,
@@ -101,24 +131,24 @@ function Map(props: Props) {
     const [initialScaleControlPosition] = useState(scaleControlPosition);
     const [initialScaleControlShown] = useState(scaleControlShown);
 
-    const [mapStyle, setMapStyle] = useState<mapboxgl.MapboxOptions['style']>(undefined);
+    const [mapStyle, setMapStyle] = useState<MapOptions['style'] | undefined>(undefined);
     const [loaded, setLoaded] = useState<boolean>(false);
 
-    const boundsRef = useRef<mapboxgl.LngLatBoundsLike | undefined>();
-    const paddingRef = useRef<number | mapboxgl.PaddingOptions | undefined>();
+    const boundsRef = useRef<LngLatBoundsLike | undefined>();
+    const paddingRef = useRef<number | PaddingOptions | undefined>();
     const durationRef = useRef<number | undefined>();
 
     const dragging = useRef<Dragging | undefined>(undefined);
     const lastIn = useRef<LastInLayer | undefined>(undefined);
     const mapDestroyedRef = useRef(false);
     const sourcesRef = useRef<Sources>({});
-    const mapRef = useRef<mapboxgl.Map | undefined>(undefined);
+    const mapRef = useRef<MaplibreMap | undefined>(undefined);
     const mapContainerRef = useRef<HTMLDivElement>(null);
 
     const setBounds = useCallback(
         (
-            bounds: mapboxgl.LngLatBoundsLike | undefined,
-            padding: number | mapboxgl.PaddingOptions | undefined,
+            bounds: LngLatBoundsLike | undefined,
+            padding: number | PaddingOptions | undefined,
             duration: number | undefined,
         ) => {
             boundsRef.current = bounds;
@@ -133,7 +163,7 @@ function Map(props: Props) {
         () => {
             if (UNSUPPORTED_BROWSER) {
                 // eslint-disable-next-line no-console
-                console.error('No Mapboxgl support.');
+                console.error('No support.');
                 return noop;
             }
 
@@ -144,7 +174,7 @@ function Map(props: Props) {
                 return noop;
             }
 
-            const mapboxglMap = new mapboxgl.Map({
+            const maplibreglMap = new MaplibreMap({
                 container: mapContainer,
                 style: initialMapStyle,
                 preserveDrawingBuffer: true,
@@ -152,25 +182,25 @@ function Map(props: Props) {
             });
 
             mapDestroyedRef.current = false;
-            mapRef.current = mapboxglMap;
+            mapRef.current = maplibreglMap;
             // FIXME: we shouldn't always set cursor to pointer
             // mapboxglMap.getCanvas().style.cursor = 'pointer';
 
             if (initialScaleControlShown) {
-                const scale = new mapboxgl.ScaleControl(initialScaleControlOptions);
-                mapboxglMap.addControl(scale, initialScaleControlPosition);
+                const scale = new ScaleControl(initialScaleControlOptions);
+                maplibreglMap.addControl(scale, initialScaleControlPosition);
             }
 
             if (initialNavControlShown) {
                 // NOTE: don't we need to remove control on unmount?
-                const nav = new mapboxgl.NavigationControl(initialNavControlOptions);
-                mapboxglMap.addControl(
+                const nav = new NavigationControl(initialNavControlOptions);
+                maplibreglMap.addControl(
                     nav,
                     initialNavControlPosition,
                 );
             }
 
-            const handleMouseDown = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+            const handleMouseDown = (data: MapMouseEvent) => {
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
@@ -178,7 +208,7 @@ function Map(props: Props) {
 
                 if (dragging.current) {
                     dragging.current = undefined;
-                    mapboxglMap.getCanvas().style.cursor = '';
+                    maplibreglMap.getCanvas().style.cursor = '';
                 }
 
                 const { point } = data;
@@ -206,11 +236,11 @@ function Map(props: Props) {
                     sourceName: firstFeature.source,
                     // sourceLayer: firstFeature.sourceLayer,
                 };
-                mapboxglMap.getCanvas().style.cursor = 'grabbing';
+                maplibreglMap.getCanvas().style.cursor = 'grabbing';
                 data.preventDefault();
             };
 
-            const handleMouseUp = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+            const handleMouseUp = (data: MapMouseEvent) => {
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
@@ -232,17 +262,17 @@ function Map(props: Props) {
                 }
                 // set dragging false
                 dragging.current = undefined;
-                mapboxglMap.getCanvas().style.cursor = '';
+                maplibreglMap.getCanvas().style.cursor = '';
             };
 
-            const handleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+            const handleClick = (data: MapMouseEvent) => {
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
                 }
                 if (dragging.current) {
                     dragging.current = undefined;
-                    mapboxglMap.getCanvas().style.cursor = '';
+                    maplibreglMap.getCanvas().style.cursor = '';
                     return;
                 }
 
@@ -281,14 +311,14 @@ function Map(props: Props) {
                 });
             };
 
-            const handleDoubleClick = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+            const handleDoubleClick = (data: MapMouseEvent) => {
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
                 }
                 if (dragging.current) {
                     dragging.current = undefined;
-                    mapboxglMap.getCanvas().style.cursor = '';
+                    maplibreglMap.getCanvas().style.cursor = '';
                     return;
                 }
 
@@ -327,7 +357,7 @@ function Map(props: Props) {
                 });
             };
 
-            const handleMouseMove = (data: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+            const handleMouseMove = (data: MapMouseEvent) => {
                 const { current: map } = mapRef;
                 if (!map) {
                     return;
@@ -361,9 +391,9 @@ function Map(props: Props) {
                     { layers: interactiveLayerKeys },
                 );
                 if (interactiveFeatures.length <= 0) {
-                    mapboxglMap.getCanvas().style.cursor = '';
+                    maplibreglMap.getCanvas().style.cursor = '';
                 } else {
-                    mapboxglMap.getCanvas().style.cursor = 'pointer';
+                    maplibreglMap.getCanvas().style.cursor = 'pointer';
                 }
 
                 const hoverableLayerKeys = layers
@@ -379,7 +409,7 @@ function Map(props: Props) {
 
                 if (hoverableFeatures.length <= 0) {
                     if (lastIn.current) {
-                        mapboxglMap.removeFeatureState(
+                        maplibreglMap.removeFeatureState(
                             {
                                 id: lastIn.current.id,
                                 source: lastIn.current.sourceName,
@@ -405,7 +435,7 @@ function Map(props: Props) {
                     || firstFeature.id !== lastIn.current.id
                 ) {
                     if (lastIn.current) {
-                        mapboxglMap.removeFeatureState(
+                        maplibreglMap.removeFeatureState(
                             {
                                 id: lastIn.current.id,
                                 source: lastIn.current.sourceName,
@@ -432,7 +462,7 @@ function Map(props: Props) {
                         sourceLayer: firstFeature.sourceLayer,
                     };
 
-                    mapboxglMap.setFeatureState(
+                    maplibreglMap.setFeatureState(
                         {
                             id: lastIn.current.id,
                             source: lastIn.current.sourceName,
@@ -467,20 +497,20 @@ function Map(props: Props) {
                 );
             };
 
-            mapboxglMap.on('click', handleClick);
-            mapboxglMap.on('dblclick', handleDoubleClick);
-            mapboxglMap.on('mousemove', handleMouseMove);
-            mapboxglMap.on('resize', handleResize);
-            mapboxglMap.on('mousedown', handleMouseDown);
-            mapboxglMap.on('mouseup', handleMouseUp);
+            maplibreglMap.on('click', handleClick);
+            maplibreglMap.on('dblclick', handleDoubleClick);
+            maplibreglMap.on('mousemove', handleMouseMove);
+            maplibreglMap.on('resize', handleResize);
+            maplibreglMap.on('mousedown', handleMouseDown);
+            maplibreglMap.on('mouseup', handleMouseUp);
 
             const destroy = () => {
                 // clearTimeout(timer);
 
-                mapboxglMap.off('click', handleClick);
-                mapboxglMap.off('dblclick', handleDoubleClick);
-                mapboxglMap.off('mousemove', handleMouseMove);
-                mapboxglMap.off('resize', handleResize);
+                maplibreglMap.off('click', handleClick);
+                maplibreglMap.off('dblclick', handleDoubleClick);
+                maplibreglMap.off('mousemove', handleMouseMove);
+                maplibreglMap.off('resize', handleResize);
 
                 // FIXME: looks like mousedown and mouseup aren't handled
 
@@ -492,7 +522,7 @@ function Map(props: Props) {
                     // eslint-disable-next-line no-console
                     console.warn('Removing map');
                 }
-                mapboxglMap.remove();
+                maplibreglMap.remove();
             };
 
             return destroy;

@@ -1,10 +1,14 @@
 import { useContext, useEffect, useRef } from 'react';
+import {
+    type LngLatLike,
+    type FlyToOptions,
+} from 'maplibre-gl';
 
 import { MapChildContext } from './context';
 
 interface Props {
-    center: mapboxgl.LngLatLike | undefined;
-    centerOptions: Omit<mapboxgl.FlyToOptions, 'center'>;
+    center: LngLatLike | undefined;
+    centerOptions: Omit<FlyToOptions, 'center'>;
 }
 
 function MapCenter(props: Props) {

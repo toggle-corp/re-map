@@ -1,3 +1,3 @@
 # Re-map
 
-React wrapper for Mapboxgl-js
+React wrapper for Maplibre

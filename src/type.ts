@@ -1,3 +1,10 @@
+import {
+    type GeoJSONFeature,
+    type LngLat,
+    type Point2D,
+    Map as MaplibreMap,
+} from 'maplibre-gl';
+
 export interface Dragging {
     id: string | number | undefined;
     layerName: string;
@@ -9,38 +16,38 @@ export interface Layer {
     hoverable?: boolean;
     destroy: () => void;
     onClick?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        feature: GeoJSONFeature,
+        lngLat: LngLat,
+        point: Point2D,
+        map: MaplibreMap,
     ) => boolean | undefined;
     onDoubleClick?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        feature: GeoJSONFeature,
+        lngLat: LngLat,
+        point: Point2D,
+        map: MaplibreMap,
     ) => boolean | undefined;
 
     // Only called for topmost layer
     onMouseEnter?: (
-        feature: mapboxgl.MapboxGeoJSONFeature,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        feature: GeoJSONFeature,
+        lngLat: LngLat,
+        point: Point2D,
+        map: MaplibreMap,
     ) => void;
-    onMouseLeave?: (map: mapboxgl.Map) => void;
+    onMouseLeave?: (map: MaplibreMap) => void;
 
     onDrag?: (
         feature: Dragging,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        lngLat: LngLat,
+        point: Point2D,
+        map: MaplibreMap,
     ) => void;
     onDragEnd?: (
         feature: Dragging,
-        lngLat: mapboxgl.LngLat,
-        point: mapboxgl.Point,
-        map: mapboxgl.Map,
+        lngLat: LngLat,
+        point: Point2D,
+        map: MaplibreMap,
     ) => void;
 }
 

@@ -1,8 +1,10 @@
-import mapboxgl from 'mapbox-gl';
+import {
+    type GeoJSONFeature,
+    type IControl,
+} from 'maplibre-gl';
 import {
     useContext, useEffect, useState, useRef,
 } from 'react';
-// import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { _cs } from '@togglecorp/fujs';
 
@@ -14,7 +16,7 @@ const noop = () => {};
 type Mode = 'simple_select' | 'direct_select' | 'draw_point' | 'draw_line_string' | 'draw_polygon';
 
 interface EditEvent {
-    features: mapboxgl.MapboxGeoJSONFeature[];
+    features: GeoJSONFeature[];
 }
 
 interface ModeChangeEvent {
@@ -22,11 +24,11 @@ interface ModeChangeEvent {
 }
 
 interface Props {
-    geoJsons: mapboxgl.MapboxGeoJSONFeature[];
+    geoJsons: GeoJSONFeature[];
 
-    onCreate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: MapboxDraw) => void;
-    onDelete?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: MapboxDraw) => void;
-    onUpdate?: (geojsons: mapboxgl.MapboxGeoJSONFeature[], draw: MapboxDraw) => void;
+    onCreate?: (geojsons: GeoJSONFeature[], draw: MapboxDraw) => void;
+    onDelete?: (geojsons: GeoJSONFeature[], draw: MapboxDraw) => void;
+    onUpdate?: (geojsons: GeoJSONFeature[], draw: MapboxDraw) => void;
     onModeChange?: (mode: Mode, draw: MapboxDraw) => void;
 
     drawOptions: Record<string, unknown>; // FIXME
@@ -45,7 +47,7 @@ const defaultDrawOptions = ({
 
 const disabledClassName = 'disabled-map-draw-control';
 
-const emptyGeoJsons: mapboxgl.MapboxGeoJSONFeature[] = [];
+const emptyGeoJsons: GeoJSONFeature[] = [];
 
 function MapShapeEditor(props: Props) {
     const {
@@ -78,8 +80,10 @@ function MapShapeEditor(props: Props) {
 
             const draw = new MapboxDraw(initialDrawOptions);
 
+            const drawControl: IControl = draw;
+
             map.addControl(
-                draw,
+                drawControl,
                 initialDrawPosition,
             );
 
@@ -87,7 +91,7 @@ function MapShapeEditor(props: Props) {
 
             return () => {
                 if (!isMapDestroyed()) {
-                    map.removeControl(draw);
+                    map.removeControl(drawControl);
                 }
             };
         },

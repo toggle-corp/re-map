@@ -1,0 +1,46 @@
+# .github/workflows/chromatic.yml
+
+# name of our action
+name: 'Chromatic'
+# the event that will trigger the action
+on: push
+
+# what the action will do
+jobs:
+  publish-chromatic:
+    # the operating system it will run on
+    runs-on: ubuntu-latest
+    # the list of steps that the action will go through
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - uses: actions/checkout@v1
+
+      - name: Install Dependencies on Library
+        run: yarn install
+        working-directory: lib
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: 🤞 Build Library 🧪
+        run: yarn build
+        working-directory: lib
+
+      - name: 🤞 Run Typecheck 🧪
+        run: yarn typecheck
+        working-directory: storybook
+
+      - name: 🤞 Run Lint 🧪
+        run: yarn lint
+        working-directory: storybook
+
+      - name: 🤞 Publish to Chromatic 🧪
+        uses: chromaui/action@v1
+        # options required to the GitHub chromatic action
+        with:
+          workingDir: storybook
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}

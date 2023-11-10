@@ -26,9 +26,9 @@
         "resolveJsonModule": true,
         "noEmit": true,
         "jsx": "react",
-        "rootDir": "./src",
         "sourceMap": true,
         "baseUrl": "."
     },
-    "include": ["./src/index.tsx", "./src/declarations", "./src/MapShapeEditor.tsx"]
+    "exclude": ["node_modules", ".storybook"],
+    "include": ["./stories", "./declarations"]
 }

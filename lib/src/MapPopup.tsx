@@ -4,7 +4,6 @@ import React, {
     useRef,
     useState,
     useMemo,
-    ReactPortal,
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -28,7 +27,7 @@ interface Props {
     trackPointer: boolean;
 }
 
-function MapPopup(props: Props): ReactPortal {
+function MapPopup(props: Props) {
     const { map } = useContext(MapChildContext);
     const {
         children,
@@ -115,7 +114,11 @@ function MapPopup(props: Props): ReactPortal {
         [map, onHide],
     );
 
-    return createPortal(children, div);
+    return (
+        <>
+            {createPortal(children, div)}
+        </>
+    );
 }
 
 export default MapPopup;

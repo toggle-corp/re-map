@@ -8,19 +8,20 @@ import React, {
 } from 'react';
 import {
     type SourceSpecification,
-    type Source,
-    type GeoJSONSource,
+    type GeoJSONSourceSpecification,
     type LngLatLike,
     Marker,
 } from 'maplibre-gl';
 import { Obj } from '@togglecorp/fujs';
 
-import { getLayerName } from '../utils';
+import { getLayerName, isGeoJSONSourceSpecification, isGeoJSONSource } from '../utils';
 import { MapChildContext, SourceChildContext } from '../context';
 import { Layer } from '../type';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
+
+type ModifiedSourceSpecification = Exclude<SourceSpecification, GeoJSONSourceSpecification> | Omit<GeoJSONSourceSpecification, 'data'>;
 
 function useCounter(initialValue = 0): [() => void, number] {
     const [value, updateValue] = useState(initialValue);
@@ -40,7 +41,7 @@ type Props = {
     geoJson?: undefined;
 } | {
     managed?: true;
-    sourceOptions: SourceSpecification;
+    sourceOptions: ModifiedSourceSpecification;
     // FIXME: do we need a separate geojson field?
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
@@ -87,7 +88,7 @@ function MapSource(props: Props) {
             }
 
             if (initialManaged && initialSourceOptions) {
-                const options = initialSourceOptions.type === 'geojson'
+                const options = isGeoJSONSourceSpecification(initialSourceOptions)
                     ? { ...initialSourceOptions, data: initialGeoJson }
                     : initialSourceOptions;
 
@@ -144,11 +145,6 @@ function MapSource(props: Props) {
             }
             const source = map.getSource(sourceKey);
 
-            function isGeoJSONSource(
-                s: Source,
-            ): s is GeoJSONSource {
-                return !!s && s.type === 'geojson';
-            }
             if (source && isGeoJSONSource(source)) {
                 if (initialDebug) {
                     // eslint-disable-next-line no-console

@@ -35,7 +35,7 @@ function removeUndefined<T extends object>(obj: T) {
 
 interface Props {
     layerKey: string;
-    layerOptions: Omit<Exclude<LayerSpecification, BackgroundLayerSpecification>, 'id'>;
+    layerOptions: Omit<Exclude<LayerSpecification, BackgroundLayerSpecification>, 'id' | 'source'>;
     hoverable?: boolean;
     onClick?: (
         feature: GeoJSONFeature,

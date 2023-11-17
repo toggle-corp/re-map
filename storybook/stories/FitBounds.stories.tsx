@@ -35,4 +35,5 @@ export function Default() {
 
 export default {
     title: 'Basic/Fit Bounds',
+    parameters: { delay: 500 },
 };

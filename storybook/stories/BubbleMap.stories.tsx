@@ -72,4 +72,5 @@ export function Default() {
 
 export default {
     title: 'Type/Bubble Map',
+    parameters: { delay: 500 },
 };

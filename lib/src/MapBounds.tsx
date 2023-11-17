@@ -8,8 +8,8 @@ import { MapChildContext } from './context';
 
 interface Props {
     bounds: LngLatBoundsLike | undefined;
-    padding: number | PaddingOptions;
-    duration: number;
+    padding?: number | PaddingOptions;
+    duration?: number;
 }
 
 function MapBounds(props: Props) {

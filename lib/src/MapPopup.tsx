@@ -19,12 +19,12 @@ const noop = () => {};
 
 // TODO: add mapStyle if necessary
 interface Props {
-    children: React.ReactElement;
+    children: React.ReactNode;
     coordinates: LngLatLike;
-    hidden: boolean;
+    hidden?: boolean;
     onHide?: () => void;
     popupOptions?: PopupOptions;
-    trackPointer: boolean;
+    trackPointer?: boolean;
 }
 
 function MapPopup(props: Props) {

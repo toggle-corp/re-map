@@ -1,9 +1,5 @@
 module.exports = {
-    extends: [
-        'airbnb',
-        'airbnb/hooks',
-        'plugin:@typescript-eslint/recommended',
-    ],
+    extends: ['airbnb', 'airbnb/hooks', 'plugin:@typescript-eslint/recommended', 'plugin:storybook/recommended', 'plugin:storybook/recommended'],
     env: {
         browser: true,
         jest: true,

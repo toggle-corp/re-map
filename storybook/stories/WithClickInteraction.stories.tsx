@@ -10,4 +10,5 @@ export function Default() {
 
 export default {
     title: 'Basic/With Click Interaction',
+    parameters: { delay: 500 },
 };

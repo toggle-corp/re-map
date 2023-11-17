@@ -34,4 +34,5 @@ export function Default() {
 
 export default {
     title: 'Basic/Fly to Location',
+    parameters: { delay: 500 },
 };

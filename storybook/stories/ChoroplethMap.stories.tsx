@@ -187,4 +187,5 @@ export function Default() {
 
 export default {
     title: 'Type/Choropleth Map',
+    parameters: { delay: 500 },
 };

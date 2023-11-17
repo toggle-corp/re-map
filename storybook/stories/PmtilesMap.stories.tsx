@@ -10,4 +10,5 @@ export function Default() {
 
 export default {
     title: 'Source/Pmtiles Source',
+    parameters: { delay: 500 },
 };

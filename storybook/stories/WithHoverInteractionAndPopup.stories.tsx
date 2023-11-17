@@ -131,5 +131,5 @@ export function Default() {
 
 export default {
     title: 'Basic/With Hover Interaction and Popup',
-    parameters: { delay: 500 },
+    parameters: { delay: 1000 },
 };

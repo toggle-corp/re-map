@@ -17,6 +17,7 @@
         "@mapbox/mapbox-gl-draw": "^1.4.3",
         "@togglecorp/fujs": "^2.0.0",
         "@togglecorp/re-map": "^0.3.0",
+        "chromatic": "^9.0.0",
         "immer": "^10.0.3",
         "maplibre-gl": "^3.5.2",
         "react": "^18.2.0",

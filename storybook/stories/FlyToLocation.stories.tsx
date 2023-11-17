@@ -1,4 +1,5 @@
 import React from 'react';
+import isChromatic from 'chromatic/isChromatic';
 import Map, {
     MapContainer,
     MapCenter,
@@ -25,7 +26,7 @@ export function Default() {
                 ]}
                 centerOptions={{
                     zoom: 4,
-                    duration: 1000,
+                    duration: isChromatic() ? 0 : 1000,
                 }}
             />
         </Map>
@@ -34,5 +35,5 @@ export function Default() {
 
 export default {
     title: 'Basic/Fly to Location',
-    parameters: { delay: 500 },
+    parameters: { delay: 1000 },
 };

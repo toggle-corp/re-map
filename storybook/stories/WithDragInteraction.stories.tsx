@@ -170,5 +170,5 @@ export function Default() {
 
 export default {
     title: 'Basic/With Drag Interaction',
-    parameters: { delay: 500 },
+    parameters: { delay: 1000 },
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import isChromatic from 'chromatic/isChromatic';
 import Map, {
     MapContainer,
     MapBounds,
@@ -27,7 +28,7 @@ export function Default() {
             <MapBounds
                 bounds={bounds}
                 padding={10}
-                duration={1000}
+                duration={isChromatic() ? 0 : 1000}
             />
         </Map>
     );
@@ -35,5 +36,5 @@ export function Default() {
 
 export default {
     title: 'Basic/Fit Bounds',
-    parameters: { delay: 500 },
+    parameters: { delay: 1000 },
 };

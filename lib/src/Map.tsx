@@ -88,13 +88,13 @@ type Pos = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
 interface Props {
     mapStyle: MapOptions['style'];
-    mapOptions: Omit<MapOptions, 'style' | 'container'>;
+    mapOptions?: Omit<MapOptions, 'style' | 'container'>;
 
-    scaleControlShown: boolean;
+    scaleControlShown?: boolean;
     scaleControlPosition?: Pos;
     scaleControlOptions?: ConstructorParameters<typeof ScaleControl>[0];
 
-    navControlShown: boolean;
+    navControlShown?: boolean;
     navControlPosition?: Pos;
     navControlOptions?: ConstructorParameters<typeof NavigationControl>[0];
 

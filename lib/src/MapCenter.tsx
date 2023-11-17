@@ -8,7 +8,7 @@ import { MapChildContext } from './context';
 
 interface Props {
     center: LngLatLike | undefined;
-    centerOptions: Omit<FlyToOptions, 'center'>;
+    centerOptions?: Omit<FlyToOptions, 'center'>;
 }
 
 function MapCenter(props: Props) {

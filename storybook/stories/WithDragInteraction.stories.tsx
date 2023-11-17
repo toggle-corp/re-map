@@ -41,7 +41,7 @@ const circleLayerOptions: Omit<CircleLayerSpecification, 'id' | 'source'> = {
 
 export function Default() {
     const [points, setPoints] = useState(
-        pointGeoJSON as GeoJSON.FeatureCollection<GeoJSON.Geometry>,
+        pointGeoJSON as GeoJSON.FeatureCollection<GeoJSON.Point>,
     );
 
     const handleDrag = useCallback(
@@ -77,6 +77,10 @@ export function Default() {
                                 lngLat.lng,
                                 lngLat.lat,
                             ];
+                            if (!safeOriginalPoint.properties) {
+                                // eslint-disable-next-line no-param-reassign
+                                safeOriginalPoint.properties = {};
+                            }
                             // eslint-disable-next-line no-param-reassign
                             safeOriginalPoint.properties.transient = true;
                         },
@@ -120,6 +124,7 @@ export function Default() {
                         (item) => item.id === feature.id,
                     );
                     if (index !== -1) {
+                        // eslint-disable-next-line no-param-reassign
                         safePoints.features[index].geometry.coordinates = [lngLat.lng, lngLat.lat];
                     }
                 });

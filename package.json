@@ -32,15 +32,9 @@
         "@togglecorp/fujs": "^2.1.0"
     },
     "peerDependencies": {
-        "@mapbox/mapbox-gl-draw": "^1.2.0",
         "mapbox-gl": "^1.13.0",
         "react": "^17.0.2",
         "react-dom": "^17.0.2"
-    },
-    "peerDependenciesMeta": {
-        "@mapbox/mapbox-gl-draw": {
-            "optional": true
-        }
     },
     "devDependencies": {
         "@babel/core": "^7.22.8",

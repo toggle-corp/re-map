@@ -6,15 +6,22 @@ import React, {
     useRef,
     useMemo,
 } from 'react';
-import mapboxgl from 'mapbox-gl';
+import {
+    type SourceSpecification,
+    type GeoJSONSourceSpecification,
+    type LngLatLike,
+    Marker,
+} from 'maplibre-gl';
 import { Obj } from '@togglecorp/fujs';
 
-import { getLayerName } from '../utils';
+import { getLayerName, isGeoJSONSourceSpecification, isGeoJSONSource } from '../utils';
 import { MapChildContext, SourceChildContext } from '../context';
 import { Layer } from '../type';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
+
+type ModifiedSourceSpecification = Exclude<SourceSpecification, GeoJSONSourceSpecification> | Omit<GeoJSONSourceSpecification, 'data'>;
 
 function useCounter(initialValue = 0): [() => void, number] {
     const [value, updateValue] = useState(initialValue);
@@ -34,7 +41,7 @@ type Props = {
     geoJson?: undefined;
 } | {
     managed?: true;
-    sourceOptions: mapboxgl.AnySourceData;
+    sourceOptions: ModifiedSourceSpecification;
     // FIXME: do we need a separate geojson field?
     geoJson?: GeoJSON.Feature<GeoJSON.Geometry>
     | GeoJSON.FeatureCollection<GeoJSON.Geometry>
@@ -68,7 +75,7 @@ function MapSource(props: Props) {
     const [initialSourceOptions] = useState(sourceOptions);
     const [initialManaged] = useState(managed);
 
-    // Add source in mapboxgl and notify addition to parent
+    // Add source in maplibregl and notify addition to parent
     useEffect(
         () => {
             if (!map || !sourceKey || !mapStyle) {
@@ -81,7 +88,7 @@ function MapSource(props: Props) {
             }
 
             if (initialManaged && initialSourceOptions) {
-                const options = initialSourceOptions.type === 'geojson'
+                const options = isGeoJSONSourceSpecification(initialSourceOptions)
                     ? { ...initialSourceOptions, data: initialGeoJson }
                     : initialSourceOptions;
 
@@ -137,7 +144,8 @@ function MapSource(props: Props) {
                 return;
             }
             const source = map.getSource(sourceKey);
-            if (source.type === 'geojson') {
+
+            if (source && isGeoJSONSource(source)) {
                 if (initialDebug) {
                     // eslint-disable-next-line no-console
                     console.warn(`Setting source geojson: ${sourceKey}`);
@@ -148,15 +156,15 @@ function MapSource(props: Props) {
         [map, mapStyle, sourceKey, geoJson, initialGeoJson, initialDebug, initialManaged],
     );
 
-    const markers = useRef<Obj<mapboxgl.Marker>>({});
-    const markersOnScreen = useRef<Obj<mapboxgl.Marker>>({});
+    const markers = useRef<Obj<Marker>>({});
+    const markersOnScreen = useRef<Obj<Marker>>({});
 
     const updateMarkers = useCallback(
         () => {
             if (!map || !createMarkerElement || !sourceKey) {
                 return;
             }
-            const newMarkers: Obj<mapboxgl.Marker> = {};
+            const newMarkers: Obj<Marker> = {};
             const features = map.querySourceFeatures(sourceKey);
 
             features.forEach((feature) => {
@@ -177,9 +185,9 @@ function MapSource(props: Props) {
                 let marker = markers.current[clusterId];
                 if (!marker) {
                     const el = createMarkerElement(properties);
-                    marker = new mapboxgl.Marker({
+                    marker = new Marker({
                         element: el,
-                    }).setLngLat(coordinates as mapboxgl.LngLatLike);
+                    }).setLngLat(coordinates as LngLatLike);
 
                     markers.current[clusterId] = marker;
                 }

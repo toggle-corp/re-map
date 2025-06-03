@@ -30,5 +30,5 @@
         "sourceMap": true,
         "baseUrl": "."
     },
-    "include": ["./src/index.tsx", "./src/declarations"]
+    "include": ["./src/index.tsx", "./src/declarations", "./src/MapShapeEditor.tsx"]
 }

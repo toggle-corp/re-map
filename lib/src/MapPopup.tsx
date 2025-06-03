@@ -4,10 +4,13 @@ import React, {
     useRef,
     useState,
     useMemo,
-    ReactPortal,
 } from 'react';
 import { createPortal } from 'react-dom';
-import mapboxgl from 'mapbox-gl';
+import {
+    type LngLatLike,
+    type PopupOptions,
+    Popup,
+} from 'maplibre-gl';
 
 import { MapChildContext } from './context';
 
@@ -16,15 +19,15 @@ const noop = () => {};
 
 // TODO: add mapStyle if necessary
 interface Props {
-    children: React.ReactElement;
-    coordinates: mapboxgl.LngLatLike;
-    hidden: boolean;
+    children: React.ReactNode;
+    coordinates: LngLatLike;
+    hidden?: boolean;
     onHide?: () => void;
-    popupOptions?: mapboxgl.PopupOptions;
-    trackPointer: boolean;
+    popupOptions?: PopupOptions;
+    trackPointer?: boolean;
 }
 
-function MapPopup(props: Props): ReactPortal {
+function MapPopup(props: Props) {
     const { map } = useContext(MapChildContext);
     const {
         children,
@@ -35,7 +38,7 @@ function MapPopup(props: Props): ReactPortal {
         trackPointer = false,
     } = props;
 
-    const popupRef = useRef<mapboxgl.Popup | null>(null);
+    const popupRef = useRef<Popup | null>(null);
 
     const [initialPopupOptions] = useState(popupOptions);
     const [initialTrackPointer] = useState(trackPointer);
@@ -54,7 +57,7 @@ function MapPopup(props: Props): ReactPortal {
                 return noop;
             }
 
-            const popup = new mapboxgl.Popup(initialPopupOptions);
+            const popup = new Popup(initialPopupOptions);
 
             if (initialCoordinates) {
                 popup.setLngLat(initialCoordinates);
@@ -111,7 +114,11 @@ function MapPopup(props: Props): ReactPortal {
         [map, onHide],
     );
 
-    return createPortal(children, div);
+    return (
+        <>
+            {createPortal(children, div)}
+        </>
+    );
 }
 
 export default MapPopup;

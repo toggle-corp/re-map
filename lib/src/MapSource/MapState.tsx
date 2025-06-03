@@ -18,7 +18,7 @@ const noop = () => {};
 interface Props<T> {
     sourceLayer?: string;
     attributeKey: string;
-    attributes: { id: number; value: T }[];
+    attributes: { id: number; value: T }[] | undefined;
 }
 
 const emptyAttributes: { id: number, value: unknown }[] = [];

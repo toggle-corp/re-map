@@ -1,11 +1,15 @@
 import { useContext, useEffect, useRef } from 'react';
+import {
+    type LngLatBoundsLike,
+    type PaddingOptions,
+} from 'maplibre-gl';
 
 import { MapChildContext } from './context';
 
 interface Props {
-    bounds: mapboxgl.LngLatBoundsLike | undefined;
-    padding: number | mapboxgl.PaddingOptions;
-    duration: number;
+    bounds: LngLatBoundsLike | undefined;
+    padding?: number | PaddingOptions;
+    duration?: number;
 }
 
 function MapBounds(props: Props) {
